@@ -42,7 +42,7 @@ export default function Home() {
 				</div>
 
 				{/* 内容区 */}
-				<div>
+				<div className="flex-1 h-full box-border">
 					<Editor />
 				</div>
       </div>
