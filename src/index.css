@@ -2,8 +2,10 @@
 @tailwind utilities;
 
 /* css reset start */
-html, body, div, p, img {
+html, body, div, p, img, button, textarea, input {
 	margin: 0;
 	padding: 0;
+	outline: none;
+	border: 0;
 }
 /* css reset end */
