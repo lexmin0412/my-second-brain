@@ -34,6 +34,8 @@ class OssClient {
   put = (fileName: string, content: string) => {
     return this.store.put(
       `/apis/my-second-brain/articles/${fileName}.md`,
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
       new OSS.Buffer(content)
     );
   };

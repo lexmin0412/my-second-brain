@@ -71,11 +71,10 @@ export default function Home() {
     setAddFileModalOpen(false);
     handlePublishSuccess();
     const refreshRes = await refreshSidebarItems();
-    console.log("refreshRes", refreshRes);
     const newSelectedItem = refreshRes?.find(
       (item) => item.title === values.fileName
     );
-    handleSidebarChange(newSelectedItem);
+    handleSidebarChange(newSelectedItem as SidebarItem);
   };
 
   return (
