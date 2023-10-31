@@ -1,4 +1,4 @@
-import * as OSS from "ali-oss";
+import OSS from "ali-oss"
 
 export interface OssClientInitProps {
   region: string;
