@@ -11,3 +11,11 @@ html, body, div, p, img, button, textarea, input, a {
 	color: #222;
 }
 /* css reset end */
+
+/* css extends start */
+.ellipsis-single {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+/* css extends end */
