@@ -64,7 +64,7 @@ export default function Editor(props: EditorProps) {
 	}
 
   return (
-    <Spin spinning={loading}>
+    <Spin spinning={loading} className='tsb-spin'>
       <div className="flex w-full h-full box-border relative">
         <textarea
           value={content}

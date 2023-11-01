@@ -7,6 +7,7 @@ import AddFileModal from "./components/add-file-modal";
 import Editor from "./components/editor";
 import OSSInitModal from "./components/oss-init-modal";
 import Sidebar, {SidebarItem} from "./components/sidebar";
+import './index.less'
 
 export default function Home() {
   const {
@@ -89,7 +90,8 @@ export default function Home() {
         selectedSidebarItem,
       }}
     >
-      <div className="flex flex-col h-screen">
+      <div className="home-page-container flex flex-col h-screen">
+
         {/* 头部 */}
         <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6">
           <div className="flex items-center">
