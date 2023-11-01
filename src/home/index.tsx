@@ -1,5 +1,7 @@
-import {useOssClient, useSidebarItems} from "@/hooks";
-import {message, Empty} from "antd";
+import {useOssClient} from "@/hooks";
+import {message, Empty, Spin} from "antd";
+import { PlusOutlined } from '@ant-design/icons'
+import {useRequest} from "ahooks";
 import {GlobalContext} from "@/hooks/context";
 import {OssClientInitProps} from "@/utils";
 import {useEffect, useState} from "react";
@@ -7,20 +9,16 @@ import AddFileModal from "./components/add-file-modal";
 import Editor from "./components/editor";
 import OSSInitModal from "./components/oss-init-modal";
 import Sidebar, {SidebarItem} from "./components/sidebar";
-import './index.less'
+import "./index.less";
 
 export default function Home() {
-  const {
-    loading,
-  } = useSidebarItems();
-
   const [editorInitialContent, setEditorInitialContent] = useState("");
   const {ossClient, ossInitModalOpen, initOSSClient, setOssInitModalOpen} =
     useOssClient();
   const [sidebarItems, setSidebarItems] = useState<SidebarItem[]>([]);
   const [selectedSidebarItem, setSelectedSidebarItem] = useState<SidebarItem>();
   const [addFileModalOpen, setAddFileModalOpen] = useState(false);
-	const [editorLoading, setEditorLoading] = useState(false)
+  const [editorLoading, setEditorLoading] = useState(false);
 
   const handleOssInitModalConfirm = (values: OssClientInitProps) => {
     initOSSClient(values);
@@ -29,33 +27,35 @@ export default function Home() {
 
   const handleSidebarChange = async (item: SidebarItem) => {
     const fileName = item.title;
-		setEditorLoading(true)
-		try {
-			const result = await ossClient?.get(fileName);
-			setEditorLoading(false);
-			setEditorInitialContent(result?.content.toString());
-			setSelectedSidebarItem(item);
-		} catch (error) {
-			console.log("get file error", error);
-			message.error('内容加载失败')
-		}
+    setEditorLoading(true);
+    try {
+      const result = await ossClient?.get(fileName);
+      setEditorLoading(false);
+      setEditorInitialContent(result?.content.toString());
+      setSelectedSidebarItem(item);
+    } catch (error) {
+      console.log("get file error", error);
+      message.error("内容加载失败");
+    }
   };
 
-  const refreshSidebarItems = () => {
-    return ossClient?.list().then((res) => {
-      const newList = res.objects?.map((item) => {
-        const sliceStartIndex = item.name.indexOf("/articles") + 10;
-        const sliceEndIndex = item.name.indexOf(".md");
-        return {
-          ...item,
-          id: item.url,
-          title: item.name.slice(sliceStartIndex, sliceEndIndex),
-        };
-      });
-      setSidebarItems(newList);
-      return newList;
-    });
-  };
+  const {runAsync: refreshSidebarItems, loading: sidebarLoading} = useRequest(
+    () => {
+      return ossClient?.list().then((res) => {
+        const newList = res.objects?.map((item) => {
+          const sliceStartIndex = item.name.indexOf("/articles") + 10;
+          const sliceEndIndex = item.name.indexOf(".md");
+          return {
+            ...item,
+            id: item.url,
+            title: item.name.slice(sliceStartIndex, sliceEndIndex),
+          };
+        });
+        setSidebarItems(newList);
+        return newList;
+      }) as Promise<SidebarItem[]>
+    }
+  );
 
   useEffect(() => {
     if (ossClient) {
@@ -78,10 +78,31 @@ export default function Home() {
     handlePublishSuccess();
     const refreshRes = await refreshSidebarItems();
     const newSelectedItem = refreshRes?.find(
-      (item) => item.title === values.fileName
+      (item: SidebarItem) => item.title === values.fileName
     );
     handleSidebarChange(newSelectedItem as SidebarItem);
   };
+
+  const {runAsync: handleFileRename} = useRequest(
+    (newFileName: string, item: SidebarItem) =>
+      ossClient?.rename(item.title, newFileName) as Promise<unknown>,
+    {
+      manual: true,
+      onSuccess: refreshSidebarItems,
+    }
+  );
+
+  const {runAsync: handleFileDelete} = useRequest(
+    (item: SidebarItem) => {
+      return ossClient?.delete(item.title) as Promise<unknown>;
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        refreshSidebarItems();
+      },
+    }
+  );
 
   return (
     <GlobalContext.Provider
@@ -91,7 +112,6 @@ export default function Home() {
       }}
     >
       <div className="home-page-container flex flex-col h-screen">
-
         {/* 头部 */}
         <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6">
           <div className="flex items-center">
@@ -122,36 +142,41 @@ export default function Home() {
               className="h-10 leading-10 text-center cursor-pointer hover:bg-[#4688ff] hover:text-white"
               onClick={handleAddBtnClick}
             >
-              + 新建{" "}
+              <PlusOutlined /> 新建
             </div>
-            {loading ? (
-              "loading"
-            ) : (
-              <Sidebar items={sidebarItems} onChange={handleSidebarChange} />
-            )}
+            {
+              <Spin spinning={sidebarLoading}>
+                <Sidebar
+                  items={sidebarItems}
+                  onChange={handleSidebarChange}
+                  onRename={handleFileRename}
+                  onDelete={handleFileDelete}
+                />
+              </Spin>
+            }
           </div>
 
           {/* 内容区 只有选中文章时才展示 */}
-          {selectedSidebarItem ? (
-            <div className="flex-1 h-full box-border">
+          <div className="flex-1 h-full box-border">
+            {selectedSidebarItem ? (
               <Editor
-								loading={editorLoading}
+                loading={editorLoading}
                 initialContent={editorInitialContent}
                 onPublishSuccess={handlePublishSuccess}
               />
-            </div>
-          ) : (
-            <Empty
-              description="新建一个文档，开始知识之旅吧～"
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-              }}
-            />
-          )}
+            ) : (
+              <Empty
+                description="新建一个文档，开始知识之旅吧～"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                }}
+              />
+            )}
+          </div>
         </div>
 
         {/* 底部 */}

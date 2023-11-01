@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.2.6",
+    "ahooks": "^3.7.8",
     "ali-oss": "^6.18.1",
     "antd": "^5.10.3",
     "react": "^18.2.0",
