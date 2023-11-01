@@ -10,7 +10,6 @@ import Sidebar, {SidebarItem} from "./components/sidebar";
 
 export default function Home() {
   const {
-    // sidebarItems,
     loading,
   } = useSidebarItems();
 
@@ -20,6 +19,7 @@ export default function Home() {
   const [sidebarItems, setSidebarItems] = useState<SidebarItem[]>([]);
   const [selectedSidebarItem, setSelectedSidebarItem] = useState<SidebarItem>();
   const [addFileModalOpen, setAddFileModalOpen] = useState(false);
+	const [editorLoading, setEditorLoading] = useState(false)
 
   const handleOssInitModalConfirm = (values: OssClientInitProps) => {
     initOSSClient(values);
@@ -28,9 +28,16 @@ export default function Home() {
 
   const handleSidebarChange = async (item: SidebarItem) => {
     const fileName = item.title;
-    const result = await ossClient?.get(fileName);
-    setEditorInitialContent(result?.content.toString());
-    setSelectedSidebarItem(item);
+		setEditorLoading(true)
+		try {
+			const result = await ossClient?.get(fileName);
+			setEditorLoading(false);
+			setEditorInitialContent(result?.content.toString());
+			setSelectedSidebarItem(item);
+		} catch (error) {
+			console.log("get file error", error);
+			message.error('内容加载失败')
+		}
   };
 
   const refreshSidebarItems = () => {
@@ -48,8 +55,6 @@ export default function Home() {
       return newList;
     });
   };
-
-  console.log("sidebarItems", sidebarItems);
 
   useEffect(() => {
     if (ossClient) {
@@ -128,6 +133,7 @@ export default function Home() {
           {selectedSidebarItem ? (
             <div className="flex-1 h-full box-border">
               <Editor
+								loading={editorLoading}
                 initialContent={editorInitialContent}
                 onPublishSuccess={handlePublishSuccess}
               />

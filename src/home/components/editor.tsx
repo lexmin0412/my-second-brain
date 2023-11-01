@@ -1,10 +1,14 @@
 import {ChangeEvent, useContext, useEffect, useState} from "react";
 import Markdown from "react-markdown";
-import { message, Modal } from 'antd'
+import { message, Modal, Spin } from 'antd'
 import PublishConfirmModal from "./publish-confirm-modal";
 import { GlobalContext } from "@/hooks/context";
 
 interface EditorProps {
+	/**
+	 * 编辑器 loading
+	 */
+	loading?: boolean
   /**
    * 初始值
    */
@@ -17,7 +21,7 @@ interface EditorProps {
 
 export default function Editor(props: EditorProps) {
 
-	const {initialContent, onPublishSuccess} = props;
+	const {loading, initialContent, onPublishSuccess} = props;
 
   const [content, setContent] = useState("");
 	const [publishConfirmModalOpen, setPublishConfirmModalOpen] = useState(false);
@@ -60,28 +64,30 @@ export default function Editor(props: EditorProps) {
 	}
 
   return (
-    <div className="flex w-full h-full box-border relative">
-      <textarea
-        value={content}
-        placeholder="请输入内容开始编辑"
-        className="flex-1 border-0 w-full h-full block outline-none border-r border-solid border-r-[#eff0f5] resize-none p-4 box-border text-base"
-        onChange={handleChange}
-      />
-      <Markdown className="flex-1 p-4">{content}</Markdown>
-      <div className="absolute top-4 right-4">
-        <button
-          className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"
-          onClick={handlePublishBtnClick}
-        >
-          发布
-        </button>
-      </div>
+    <Spin spinning={loading}>
+      <div className="flex w-full h-full box-border relative">
+        <textarea
+          value={content}
+          placeholder="请输入内容开始编辑"
+          className="flex-1 border-0 w-full h-full block outline-none border-r border-solid border-r-[#eff0f5] resize-none p-4 box-border text-base"
+          onChange={handleChange}
+        />
+        <Markdown className="flex-1 p-4">{content}</Markdown>
+        <div className="absolute top-4 right-4">
+          <button
+            className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"
+            onClick={handlePublishBtnClick}
+          >
+            发布
+          </button>
+        </div>
 
-      <PublishConfirmModal
-        open={publishConfirmModalOpen}
-        onCancel={() => setPublishConfirmModalOpen(false)}
-        onOk={handleDocUpdate}
-      />
-    </div>
+        <PublishConfirmModal
+          open={publishConfirmModalOpen}
+          onCancel={() => setPublishConfirmModalOpen(false)}
+          onOk={handleDocUpdate}
+        />
+      </div>
+    </Spin>
   );
 }
