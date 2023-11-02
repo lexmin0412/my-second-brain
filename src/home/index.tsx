@@ -1,7 +1,8 @@
 import {useOssClient} from "@/hooks";
-import {message, Empty, Spin} from "antd";
-import { PlusOutlined } from '@ant-design/icons'
+import {message, Empty} from "antd";
+import {PlusOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
+import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
 import {OssClientInitProps} from "@/utils";
 import {useEffect, useState} from "react";
@@ -42,18 +43,26 @@ export default function Home() {
   const {runAsync: refreshSidebarItems, loading: sidebarLoading} = useRequest(
     () => {
       return ossClient?.list().then((res) => {
-        const newList = res.objects?.map((item) => {
-          const sliceStartIndex = item.name.indexOf("/articles") + 10;
-          const sliceEndIndex = item.name.indexOf(".md");
-          return {
-            ...item,
-            id: item.url,
-            title: item.name.slice(sliceStartIndex, sliceEndIndex),
-          };
-        });
+        const newList = res.objects
+          ?.map((item) => {
+            const sliceStartIndex = item.name.indexOf("/articles") + 10;
+            const sliceEndIndex = item.name.indexOf(".md");
+            return {
+              ...item,
+              id: item.url,
+              title: item.name.slice(sliceStartIndex, sliceEndIndex),
+            };
+          })
+          ?.sort((prev, cur) => {
+            // 按更新时间由新到老排列
+            const sorted = dayjs(prev.lastModified).isAfter(
+              dayjs(cur.lastModified)
+            );
+            return sorted ? -1 : 1;
+          });
         setSidebarItems(newList);
         return newList;
-      }) as Promise<SidebarItem[]>
+      }) as Promise<SidebarItem[]>;
     }
   );
 
@@ -72,7 +81,7 @@ export default function Home() {
   };
 
   const handleAddFileModalOk = async (values: {fileName: string}) => {
-    await ossClient?.put(values.fileName, "");
+    await ossClient?.put(values.fileName.trim(), "");
     message.success("新增成功");
     setAddFileModalOpen(false);
     handlePublishSuccess();
@@ -85,7 +94,7 @@ export default function Home() {
 
   const {runAsync: handleFileRename} = useRequest(
     (newFileName: string, item: SidebarItem) =>
-      ossClient?.rename(item.title, newFileName) as Promise<unknown>,
+      ossClient?.rename(item.title, newFileName.trim()) as Promise<unknown>,
     {
       manual: true,
       onSuccess: refreshSidebarItems,
@@ -144,16 +153,14 @@ export default function Home() {
             >
               <PlusOutlined /> 新建
             </div>
-            {
-              // <Spin spinning={sidebarLoading}>
-                <Sidebar
-                  items={sidebarItems}
-                  onChange={handleSidebarChange}
-                  onRename={handleFileRename}
-                  onDelete={handleFileDelete}
-                />
-              // </Spin>
-            }
+
+            <Sidebar
+              loading={sidebarLoading}
+              items={sidebarItems}
+              onChange={handleSidebarChange}
+              onRename={handleFileRename}
+              onDelete={handleFileDelete}
+            />
           </div>
 
           {/* 内容区 只有选中文章时才展示 */}

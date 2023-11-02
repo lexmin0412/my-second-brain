@@ -1,4 +1,4 @@
-import { Modal } from 'antd'
+import { Modal, Spin } from 'antd'
 import {EditOutlined, DeleteOutlined} from "@ant-design/icons";
 import {GlobalContext} from "@/hooks/context";
 import {useContext, useState} from "react";
@@ -11,6 +11,7 @@ export interface SidebarItem {
 }
 
 interface SidebarProps {
+	loading?: boolean
   items: SidebarItem[];
   onChange: (item: SidebarItem) => void;
   onRename: (newFileName: string, item: SidebarItem) => Promise<unknown>;
@@ -21,7 +22,7 @@ interface SidebarProps {
  * 侧边栏
  */
 export default function Sidebar(props: SidebarProps) {
-  const {items, onChange, onRename, onDelete} = props;
+  const {items, onChange, onRename, onDelete, loading} = props;
   const {selectedSidebarItem} = useContext(GlobalContext);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
 	const [renamingItem, setRenamingItem] = useState<SidebarItem>()
@@ -54,7 +55,7 @@ export default function Sidebar(props: SidebarProps) {
 	}
 
   return (
-    <div>
+    <Spin spinning={loading}>
       {items.map((item: SidebarItem) => {
         return (
           <div
@@ -88,6 +89,6 @@ export default function Sidebar(props: SidebarProps) {
           fileName: renamingItem?.title as string,
         }}
       />
-    </div>
+    </Spin>
   );
 }
