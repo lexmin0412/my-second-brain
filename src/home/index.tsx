@@ -210,6 +210,7 @@ export default function Home() {
       <div className="home-page-container flex flex-col h-screen overflow-hidden">
         {/* 头部 */}
         <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6">
+          {/* 左侧logo */}
           <div className="flex items-center">
             <img
               className="block w-8 h-8 rounded-2xl"
@@ -219,15 +220,29 @@ export default function Home() {
               My Second Brain
             </div>
           </div>
+          {/* 右侧图标 */}
           <div className="flex items-center">
             <a
+              href="https://r.xjq.icu/"
+              className="font-semibold text-slate-800 flex items-center justify-center"
+              target="_blank"
+            >
+              <img
+                src="https://image.xjq.icu/runcode/2023-10-07/assets/study.def7917b.ico"
+                style={{
+                  width: "32px",
+                  height: "32px",
+                }}
+              />
+            </a>
+            <a
               href="https://github.com/lexmin0412/my-second-brain"
-              className="font-semibold text-slate-800"
+              className="font-semibold text-slate-800 flex items-center justify-center ml-4"
               target="_blank"
             >
               <GithubOutlined
                 style={{
-                  fontSize: "32px",
+                  fontSize: "28px",
                 }}
               />
             </a>
