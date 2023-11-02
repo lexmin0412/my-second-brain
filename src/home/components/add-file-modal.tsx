@@ -1,4 +1,5 @@
 import {Modal, Form, Input} from "antd";
+import { useEffect } from "react";
 
 interface AddFileModalProps {
   open: boolean;
@@ -14,6 +15,10 @@ export default function AddFileModal(props: AddFileModalProps) {
     await form.validateFields();
     onOk(form.getFieldsValue());
   };
+
+	useEffect(() => {
+    form.resetFields();
+  }, [open]);
 
   return (
     <Modal
