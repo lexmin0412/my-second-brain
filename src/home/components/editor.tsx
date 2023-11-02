@@ -1,6 +1,7 @@
 import {ChangeEvent, useContext, useEffect, useState} from "react";
-import Markdown from "react-markdown";
 import { message, Modal, Spin } from 'antd'
+import Markdown from "react-markdown";
+import reactGFM from 'remark-gfm'
 import PublishConfirmModal from "./publish-confirm-modal";
 import { GlobalContext } from "@/hooks/context";
 
@@ -63,16 +64,24 @@ export default function Editor(props: EditorProps) {
 		}
 	}
 
+	// 语法插件
+	const remarkPlugins = [reactGFM];
+
   return (
-    <Spin spinning={loading} className='tsb-spin'>
+    <Spin spinning={loading} className="tsb-spin">
       <div className="flex w-full h-full box-border relative">
+				{/* 编辑区域 */}
         <textarea
           value={content}
           placeholder="请输入内容开始编辑"
           className="flex-1 border-0 w-full h-full block outline-none border-r border-solid border-r-[#eff0f5] resize-none p-4 box-border text-base"
           onChange={handleChange}
         />
-        <Markdown className="flex-1 p-4">{content}</Markdown>
+
+				{/* 预览区域 */}
+        <Markdown className="flex-1 p-4 overflow-auto" remarkPlugins={remarkPlugins}>
+          {content}
+        </Markdown>
         <div className="absolute top-4 right-4">
           <button
             className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"

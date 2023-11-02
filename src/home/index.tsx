@@ -111,7 +111,7 @@ export default function Home() {
         selectedSidebarItem,
       }}
     >
-      <div className="home-page-container flex flex-col h-screen">
+      <div className="home-page-container flex flex-col h-screen overflow-hidden">
         {/* 头部 */}
         <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6">
           <div className="flex items-center">
@@ -135,9 +135,9 @@ export default function Home() {
         </div>
 
         {/* 主内容区 */}
-        <div className="flex flex-1">
+        <div className="flex flex-1 overflow-hidden">
           {/* 侧边栏 */}
-          <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full">
+          <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full overflow-auto">
             <div
               className="h-10 leading-10 text-center cursor-pointer hover:bg-[#4688ff] hover:text-white"
               onClick={handleAddBtnClick}
@@ -145,14 +145,14 @@ export default function Home() {
               <PlusOutlined /> 新建
             </div>
             {
-              <Spin spinning={sidebarLoading}>
+              // <Spin spinning={sidebarLoading}>
                 <Sidebar
                   items={sidebarItems}
                   onChange={handleSidebarChange}
                   onRename={handleFileRename}
                   onDelete={handleFileDelete}
                 />
-              </Spin>
+              // </Spin>
             }
           </div>
 
