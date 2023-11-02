@@ -1,14 +1,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* css variables start */
+:root {
+	--color-theme: #4681ff;
+	--color-default: #222;
+}
+/* css variables end */
+
 /* css reset start */
-html, body, div, p, img, button, textarea, input, a {
+html, body, div, p, img, button, textarea, input {
 	margin: 0;
 	padding: 0;
 	outline: none;
 	border: 0;
 	text-decoration: none;
-	color: #222;
+	color: var(--color-default);
+}
+
+a {
+	text-decoration: none;
+	cursor: pointer;
+	color: var(--color-theme);
+}
+
+table {
+	border: 1px solid var(--color-default);
 }
 /* css reset end */
 
