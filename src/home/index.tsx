@@ -6,7 +6,9 @@ import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
 import {OssClientInitProps} from "@/utils";
 import {useEffect, useState} from "react";
-import AddFileModal from "./components/add-file-modal";
+import AddFileModal, {
+  AddFileModalOnOkValues,
+} from "./components/add-file-modal";
 import Editor from "./components/editor";
 import OSSInitModal from "./components/oss-init-modal";
 import Sidebar, {SidebarItem} from "./components/sidebar";
@@ -26,8 +28,13 @@ export default function Home() {
     setOssInitModalOpen(false);
   };
 
-  const handleSidebarChange = async (item: SidebarItem) => {
-    const fileName = item.title;
+  /**
+   * 切换 sidebar
+   * @param fullTitle 完整标题，如果是嵌套接口，则 fullTitle 为 parent/title
+   * @param item 选中的item
+   */
+  const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
+    const fileName = fullTitle;
     setEditorLoading(true);
     try {
       const result = await ossClient?.get(fileName);
@@ -43,23 +50,79 @@ export default function Home() {
   const {runAsync: refreshSidebarItems, loading: sidebarLoading} = useRequest(
     () => {
       return ossClient?.list().then((res) => {
-        const newList = res.objects
-          ?.map((item) => {
-            const sliceStartIndex = item.name.indexOf("/articles") + 10;
-            const sliceEndIndex = item.name.indexOf(".md");
-            return {
+        const tempList: SidebarItem[] = [];
+        res.objects?.forEach((item) => {
+          const sliceStartIndex = item.name.indexOf("/articles") + 10;
+          const lastSlashIndex = item.name.lastIndexOf("/") + 1;
+          const sliceEndIndex = item.name.indexOf(".md");
+          // 如果以斜杠结尾，证明是空文件夹
+          if (item.name.endsWith("/")) {
+						const fileName = item.name.slice(sliceStartIndex, item.name.length - 1)
+            tempList.push({
               ...item,
               id: item.url,
-              title: item.name.slice(sliceStartIndex, sliceEndIndex),
-            };
-          })
-          ?.sort((prev, cur) => {
-            // 按更新时间由新到老排列
-            const sorted = dayjs(prev.lastModified).isAfter(
-              dayjs(cur.lastModified)
+              title: fileName,
+							fullTitle: fileName,
+              isFolder: true,
+            });
+          }
+          // 如果最后一个斜杠的位置与 /articles/ 结束位置相等，则证明是 articles 下的顶级文件
+          else if (sliceStartIndex === lastSlashIndex) {
+						const fileName = item.name.slice(sliceStartIndex, sliceEndIndex)
+            tempList.push({
+              ...item,
+              id: item.url,
+              title: fileName,
+							fullTitle: fileName,
+              isFolder: false,
+            });
+          } else {
+            const folderName = item.name.slice(
+              sliceStartIndex,
+              lastSlashIndex - 1
             );
-            return sorted ? -1 : 1;
-          });
+            const fileName = item.name.slice(lastSlashIndex, sliceEndIndex);
+            // 如果既不是顶级文件夹，又不是顶级文件，那就只能是嵌套文件了
+            const existedFolder = tempList.find(
+              (ele) => ele.title === folderName
+            );
+            const itemTitle = item.url.slice(0, lastSlashIndex);
+            if (existedFolder) {
+              existedFolder.children = (existedFolder.children || []).concat({
+                ...item,
+                id: `${existedFolder.title}${item.url}`,
+                title: fileName,
+                fullTitle: `${existedFolder.title}/${fileName}`,
+                isFolder: false,
+              });
+            } else {
+              tempList.push({
+                ...item,
+                id: itemTitle,
+                title: folderName,
+                fullTitle: folderName,
+                isFolder: true,
+                children: [
+                  {
+                    ...item,
+                    id: `${itemTitle}${item.url}`,
+                    title: fileName,
+                    fullTitle: `${folderName}/${fileName}`,
+                    isFolder: false,
+                  },
+                ],
+              });
+            }
+          }
+        });
+        const newList = tempList.sort((prev, cur) => {
+          // 按更新时间由新到老排列
+          const sorted = dayjs(prev.lastModified).isAfter(
+            dayjs(cur.lastModified)
+          );
+          return sorted ? -1 : 1;
+        });
+        console.log("newList", newList);
         setSidebarItems(newList);
         return newList;
       }) as Promise<SidebarItem[]>;
@@ -80,8 +143,12 @@ export default function Home() {
     setAddFileModalOpen(true);
   };
 
-  const handleAddFileModalOk = async (values: {fileName: string}) => {
-    await ossClient?.put(values.fileName.trim(), "");
+  const handleAddFileModalOk = async (values: AddFileModalOnOkValues) => {
+    if (values.type === "folder") {
+      await ossClient?.addFolder(`${values.fileName}`.trim());
+    } else {
+      await ossClient?.put(values.fileName.trim(), "");
+    }
     message.success("新增成功");
     setAddFileModalOpen(false);
     handlePublishSuccess();
@@ -89,12 +156,30 @@ export default function Home() {
     const newSelectedItem = refreshRes?.find(
       (item: SidebarItem) => item.title === values.fileName
     );
-    handleSidebarChange(newSelectedItem as SidebarItem);
+    if (values.type === "file") {
+      handleSidebarChange(
+        newSelectedItem?.title as string,
+        newSelectedItem as SidebarItem
+      );
+    }
   };
 
   const {runAsync: handleFileRename} = useRequest(
     (newFileName: string, item: SidebarItem) =>
-      ossClient?.rename(item.title, newFileName.trim()) as Promise<unknown>,
+      {
+				let newFullFileName = ''
+				if (item.title === item.fullTitle) {
+					newFullFileName = newFileName
+				} else {
+					newFullFileName = `${item.fullTitle.slice(0,
+            item.fullTitle.indexOf(item.title) - 1
+          )}/${newFileName}`;
+				}
+				return ossClient?.rename(
+          item.fullTitle,
+          newFullFileName.trim()
+        ) as Promise<unknown>;
+			},
     {
       manual: true,
       onSuccess: refreshSidebarItems,
@@ -103,7 +188,7 @@ export default function Home() {
 
   const {runAsync: handleFileDelete} = useRequest(
     (item: SidebarItem) => {
-      return ossClient?.delete(item.title) as Promise<unknown>;
+      return ossClient?.delete(item.fullTitle) as Promise<unknown>;
     },
     {
       manual: true,
@@ -112,6 +197,8 @@ export default function Home() {
       },
     }
   );
+
+  console.log("sidebarItems", sidebarItems);
 
   return (
     <GlobalContext.Provider

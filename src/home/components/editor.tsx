@@ -56,7 +56,7 @@ export default function Editor(props: EditorProps) {
         title: "发布确认",
         onOk: () => {
           return handleDocUpdate({
-            fileName: selectedSidebarItem.title,
+            fileName: selectedSidebarItem.fullTitle,
           });
         },
       });

@@ -1,10 +1,15 @@
-import {Modal, Form, Input} from "antd";
-import { useEffect } from "react";
+import {Modal, Form, Input, Radio} from "antd";
+import {useEffect} from "react";
+
+export interface AddFileModalOnOkValues {
+  fileName: string;
+  type: "folder" | "file";
+}
 
 interface AddFileModalProps {
   open: boolean;
   onCancel: () => void;
-  onOk: (values: {fileName: string}) => void;
+  onOk: (values: AddFileModalOnOkValues) => void;
 }
 
 export default function AddFileModal(props: AddFileModalProps) {
@@ -16,9 +21,18 @@ export default function AddFileModal(props: AddFileModalProps) {
     onOk(form.getFieldsValue());
   };
 
-	useEffect(() => {
-    form.resetFields();
+  useEffect(() => {
+    if (!open) {
+      form.resetFields();
+    } else {
+      form.setFieldsValue({
+        type: "folder",
+        fileName: undefined,
+      });
+    }
   }, [open]);
+
+  console.log("form.getFieldsValue", form.getFieldsValue());
 
   return (
     <Modal
@@ -34,8 +48,32 @@ export default function AddFileModal(props: AddFileModalProps) {
     >
       <Form form={form}>
         <Form.Item
+          name="type"
+          label="类型"
+          required
+          rules={[
+            {
+              required: true,
+              message: "类型不能为空",
+            },
+          ]}
+        >
+          <Radio.Group
+            options={[
+              {
+                value: "folder",
+                label: "文件夹",
+              },
+              {
+                value: "file",
+                label: "文件",
+              },
+            ]}
+          />
+        </Form.Item>
+        <Form.Item
           name="fileName"
-          label="文件名"
+          label="名称"
           required
           rules={[
             {

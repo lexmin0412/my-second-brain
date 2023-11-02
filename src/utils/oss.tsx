@@ -1,4 +1,4 @@
-import OSS from "ali-oss"
+import OSS from "ali-oss";
 
 export interface OssClientInitProps {
   region: string;
@@ -40,6 +40,15 @@ class OssClient {
     );
   };
 
+  addFolder = (folderName: string) => {
+    return this.store.put(
+      `/apis/my-second-brain/articles/${folderName}/`,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      new OSS.Buffer("")
+    );
+  };
+
   get = (fileName: string) => {
     return this.store.get(`apis/my-second-brain/articles/${fileName}.md`);
   };
@@ -55,13 +64,10 @@ class OssClient {
     return this.store.delete(`/apis/my-second-brain/articles/${fileName}.md`);
   };
 
-  rename = async(sourceFileName: string, targetFileName: string) => {
-    await this.copy(
-      sourceFileName,
-      targetFileName,
-    );
-		const res = await this.delete(sourceFileName);
-		return Promise.resolve({
+  rename = async (sourceFileName: string, targetFileName: string) => {
+    await this.copy(sourceFileName, targetFileName);
+    const res = await this.delete(sourceFileName);
+    return Promise.resolve({
       res,
     });
   };
