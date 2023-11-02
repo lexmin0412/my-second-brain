@@ -1,6 +1,6 @@
 import {useOssClient} from "@/hooks";
 import {message, Empty} from "antd";
-import {PlusOutlined} from "@ant-design/icons";
+import {PlusOutlined, GithubOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
@@ -132,13 +132,17 @@ export default function Home() {
               My Second Brain
             </div>
           </div>
-          <div>
+          <div className="flex items-center">
             <a
               href="https://github.com/lexmin0412/my-second-brain"
-              className="font-semibold"
+              className="font-semibold text-slate-800"
               target="_blank"
             >
-              Github
+              <GithubOutlined
+                style={{
+                  fontSize: "32px",
+                }}
+              />
             </a>
           </div>
         </div>
