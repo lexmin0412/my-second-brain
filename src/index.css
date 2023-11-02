@@ -1,3 +1,6 @@
+/* github flavored markdown 样式 */
+@import './assets/css/github-markdown.css';
+
 @tailwind components;
 @tailwind utilities;
 
@@ -22,10 +25,6 @@ a {
 	text-decoration: none;
 	cursor: pointer;
 	color: var(--color-theme);
-}
-
-table {
-	border: 1px solid var(--color-default);
 }
 /* css reset end */
 
