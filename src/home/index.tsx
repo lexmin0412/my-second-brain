@@ -364,6 +364,11 @@ export default function Home() {
           onClose={() => setMenuSidebarOpen(false)}
           open={menuSidebarOpen}
           closable={false}
+					styles={{
+						body: {
+							padding: '12px'
+						}
+					}}
         >
           <div className="h-full flex flex-col">
             <Sidebar
@@ -377,6 +382,7 @@ export default function Home() {
             <Button
               size="large"
               type="primary"
+							className="m-2"
               onClick={() => setMenuSidebarOpen(false)}
             >
               关闭

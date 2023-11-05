@@ -9,6 +9,7 @@ import {GlobalContext} from "@/hooks/context";
 import {useContext, useState} from "react";
 import {useRequest} from "ahooks";
 import FileRenameModal from "./file-rename-modal";
+import { isMobile } from "@/utils";
 
 export interface SidebarItem {
   id: string;
@@ -98,11 +99,12 @@ export default function Sidebar(props: SidebarProps) {
     const fullTitle = parentItem
       ? `${parentItem.title}/${item.title}`
       : item.title;
+		const borderClassNames = isMobile() ? "border-0 border-b border-solid border-b-[#eff0f5]" : ''
     return (
       <>
         <div
           key={item.id}
-          className={`h-10 flex items-center leading-10 border-0 border-b border-solid border-b-[#eff0f5] pr-4 hover:bg-theme hover:text-white cursor-pointer rounded ${
+          className={`h-10 flex items-center leading-10 m-2 pr-4 hover:bg-theme hover:text-white cursor-pointer rounded ${
             item.id === selectedSidebarItem?.id ? "bg-[#4688ff] text-white" : ""
           } ${className}`}
         >
@@ -131,7 +133,7 @@ export default function Sidebar(props: SidebarProps) {
           return (
             <SidebarItemComponent
               item={child}
-              className='pl-6'
+              className="pl-6"
               parentItem={item}
             />
           );
