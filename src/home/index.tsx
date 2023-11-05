@@ -168,12 +168,29 @@ export default function Home() {
     setAddFileModalOpen(false);
     handlePublishSuccess();
     const refreshRes = await refreshSidebarItems();
-    const newSelectedItem = refreshRes?.find(
-      (item: SidebarItem) => item.title === values.fileName
+
+		// 截取真实文件名
+		const slashIndex = values.fileName.indexOf('/');
+		const trulyFileName = slashIndex > -1 ? values.fileName.slice(slashIndex+1) : values.fileName
+
+    let newSelectedItem: SidebarItem | undefined = undefined
+		refreshRes?.find(
+      (item: SidebarItem) => {
+				if (item.title === trulyFileName) {
+					newSelectedItem = item
+        }
+				if (item.children?.length) {
+					item.children.find((child)=>{
+						if (child.title === trulyFileName) {
+							newSelectedItem = child
+            }
+					})
+				}
+			}
     );
-    if (values.type === "file") {
+    if (values.type === "file" && newSelectedItem) {
       handleSidebarChange(
-        newSelectedItem?.title as string,
+        (newSelectedItem as SidebarItem).fullTitle as string,
         newSelectedItem as SidebarItem
       );
     }

@@ -33,11 +33,8 @@ export default function AddFileModal(props: AddFileModalProps) {
           : fileName,
       type,
     };
-		console.log('values', values)
-    // onOk(values);
+    onOk(values);
   };
-
-	console.log("folderOptions", folderOptions);
 
   useEffect(() => {
     if (!open) {
