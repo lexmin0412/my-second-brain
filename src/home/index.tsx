@@ -310,7 +310,7 @@ export default function Home() {
           ) : null}
 
           {/* 内容区 只有选中文章时才展示 */}
-          <div className="flex-1 h-full box-border">
+          <div className="flex-1 h-full box-border overflow-hidden">
             {selectedSidebarItem ? (
               <Editor
                 editorVisible={layoutVisibleConfig.editor}
