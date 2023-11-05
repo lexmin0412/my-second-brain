@@ -6,7 +6,6 @@ export const useLocalStorageState = <Value>(key: string, defaultValue: Value) =>
 	const [value, setValue] = useState<Value>(valueInStorage)
 
 	useEffect(() => {
-		console.log('value change', value)
 		localStorage.setItem(key, JSON.stringify(value || {}))
 	}, [value])
 
