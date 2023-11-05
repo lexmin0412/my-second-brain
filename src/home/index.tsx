@@ -287,7 +287,6 @@ export default function Home() {
                 onChange={handleSidebarChange}
                 onRename={handleFileRename}
                 onDelete={handleFileDelete}
-                itemClassName="pl-8"
               />
             </div>
           ) : null}

@@ -102,11 +102,9 @@ export default function Sidebar(props: SidebarProps) {
       <>
         <div
           key={item.id}
-          className={`h-10 flex items-center leading-10 border-0 border-b border-solid border-b-[#eff0f5] px-4 hover:bg-[#4688ff] hover:text-white cursor-pointer ${
+          className={`h-10 flex items-center leading-10 border-0 border-b border-solid border-b-[#eff0f5] pr-4 hover:bg-theme hover:text-white cursor-pointer rounded ${
             item.id === selectedSidebarItem?.id ? "bg-[#4688ff] text-white" : ""
-          }
-					${className}
-						`}
+          } ${className}`}
         >
           {item.isFolder ? (
             <FolderOpenOutlined className="mr-1" />
@@ -133,7 +131,7 @@ export default function Sidebar(props: SidebarProps) {
           return (
             <SidebarItemComponent
               item={child}
-              className={itemClassName}
+              className='pl-6'
               parentItem={item}
             />
           );
@@ -147,7 +145,7 @@ export default function Sidebar(props: SidebarProps) {
       {items.map((item: SidebarItem) => {
         return (
           <Spin spinning={loading}>
-            <SidebarItemComponent item={item} />
+            <SidebarItemComponent item={item} className='pl-2' />
           </Spin>
         );
       })}
