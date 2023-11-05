@@ -79,7 +79,7 @@ export default function Editor(props: EditorProps) {
     <Spin spinning={loading} className="tsb-spin">
       <div className="flex w-full h-full box-border relative">
         {/* 编辑区域 */}
-        {editorVisible ? (
+        {!isOnMobile && editorVisible ? (
           <textarea
             value={content}
             placeholder="请输入内容开始编辑"
