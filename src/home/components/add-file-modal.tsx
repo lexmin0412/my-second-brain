@@ -1,26 +1,43 @@
-import { Form, Input, Radio} from "antd";
-import {useEffect} from "react";
+import {Form, Input, Radio, Select} from "antd";
+import {useEffect, useState} from "react";
 import ModalEnhancer from "./base/modal-enhancer";
+import {SidebarItem} from "./sidebar";
+
+type AddType = "folder" | "file";
 
 export interface AddFileModalOnOkValues {
   fileName: string;
-  type: "folder" | "file";
+  type: AddType;
 }
 
 interface AddFileModalProps {
   open: boolean;
   onCancel: () => void;
   onOk: (values: AddFileModalOnOkValues) => void;
+  folderOptions: SidebarItem[];
 }
 
 export default function AddFileModal(props: AddFileModalProps) {
-  const {open, onCancel, onOk} = props;
+  const {open, onCancel, onOk, folderOptions} = props;
   const [form] = Form.useForm();
+  const type: "folder" = Form.useWatch("type", form);
+  const [currentFolder, setCurrentFolder] = useState("");
 
   const handleOk = async () => {
     await form.validateFields();
-    onOk(form.getFieldsValue());
+    const {fileName, type} = form.getFieldsValue() as AddFileModalOnOkValues;
+    const values: AddFileModalOnOkValues = {
+      fileName:
+        type == 'file'
+          ? `${currentFolder ? `${currentFolder}/` : ""}${fileName}`
+          : fileName,
+      type,
+    };
+		console.log('values', values)
+    // onOk(values);
   };
+
+	console.log("folderOptions", folderOptions);
 
   useEffect(() => {
     if (!open) {
@@ -33,7 +50,29 @@ export default function AddFileModal(props: AddFileModalProps) {
     }
   }, [open]);
 
-  console.log("form.getFieldsValue", form.getFieldsValue());
+  const folders = (
+    <Select
+      value={currentFolder}
+      onChange={(newValue) => {
+        setCurrentFolder(newValue);
+      }}
+      style={{
+        width: "100px",
+      }}
+      options={[
+        {
+          label: "根目录",
+          value: "",
+        },
+        ...folderOptions.map((item)=>{
+					return {
+						label: item.title,
+						value: item.title
+					}
+				}),
+      ]}
+    />
+  );
 
   return (
     <ModalEnhancer
@@ -72,19 +111,39 @@ export default function AddFileModal(props: AddFileModalProps) {
             ]}
           />
         </Form.Item>
-        <Form.Item
-          name="fileName"
-          label="名称"
-          required
-          rules={[
-            {
-              required: true,
-              message: "文件名不能为空",
-            },
-          ]}
-        >
-          <Input type="text" placeholder="请输入文件名" />
-        </Form.Item>
+        {type === "folder" ? (
+          <Form.Item
+            name="fileName"
+            label="名称"
+            required
+            rules={[
+              {
+                required: true,
+                message: "名称不能为空",
+              },
+            ]}
+          >
+            <Input type="text" placeholder="请输入名称" />
+          </Form.Item>
+        ) : (
+          <Form.Item
+            name="fileName"
+            label="名称"
+            required
+            rules={[
+              {
+                required: true,
+                message: "文件名不能为空",
+              },
+            ]}
+          >
+            <Input
+              type="text"
+              placeholder="请输入文件名"
+              addonBefore={folders}
+            />
+          </Form.Item>
+        )}
       </Form>
     </ModalEnhancer>
   );

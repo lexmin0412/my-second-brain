@@ -1,6 +1,6 @@
 import {useOssClient} from "@/hooks";
 import {Button, message, Empty, Drawer} from "antd";
-import {GithubOutlined, PlusOutlined} from "@ant-design/icons";
+import {GithubOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
@@ -138,7 +138,6 @@ export default function Home() {
           );
           return sorted ? -1 : 1;
         });
-        console.log("newList", newList);
         setSidebarItems(newList);
         return newList;
       }) as Promise<SidebarItem[]>;
@@ -219,6 +218,8 @@ export default function Home() {
     }
   );
 
+	const folderOptions = sidebarItems.filter((item)=>item.isFolder)
+
   return (
     <GlobalContext.Provider
       value={{
@@ -295,8 +296,8 @@ export default function Home() {
           <div className="flex-1 h-full box-border">
             {selectedSidebarItem ? (
               <Editor
-								editorVisible={layoutVisibleConfig.editor}
-								previewVisible={layoutVisibleConfig.preview}
+                editorVisible={layoutVisibleConfig.editor}
+                previewVisible={layoutVisibleConfig.preview}
                 loading={editorLoading}
                 initialContent={editorInitialContent}
                 onPublishSuccess={handlePublishSuccess}
@@ -343,6 +344,7 @@ export default function Home() {
 
         <AddFileModal
           open={addFileModalOpen}
+          folderOptions={folderOptions}
           onCancel={() => setAddFileModalOpen(false)}
           onOk={handleAddFileModalOk}
         />
@@ -364,11 +366,11 @@ export default function Home() {
           onClose={() => setMenuSidebarOpen(false)}
           open={menuSidebarOpen}
           closable={false}
-					styles={{
-						body: {
-							padding: '12px'
-						}
-					}}
+          styles={{
+            body: {
+              padding: "12px",
+            },
+          }}
         >
           <div className="h-full flex flex-col">
             <Sidebar
@@ -382,7 +384,7 @@ export default function Home() {
             <Button
               size="large"
               type="primary"
-							className="m-2"
+              className="m-2"
               onClick={() => setMenuSidebarOpen(false)}
             >
               关闭
