@@ -6,6 +6,7 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from 'rehype-raw'
 import PublishConfirmModal from "./publish-confirm-modal";
 import {GlobalContext} from "@/hooks/context";
+import { isMobile } from "@/utils";
 
 interface EditorProps {
   /**
@@ -20,10 +21,14 @@ interface EditorProps {
    * 发布成功回调
    */
   onPublishSuccess: () => void;
+  editorVisible: boolean;
+  previewVisible: boolean
 }
 
+const isOnMobile = isMobile();
+
 export default function Editor(props: EditorProps) {
-  const {loading, initialContent, onPublishSuccess} = props;
+  const {loading, initialContent, onPublishSuccess, editorVisible, previewVisible} = props;
 
   const [content, setContent] = useState("");
   const [publishConfirmModalOpen, setPublishConfirmModalOpen] = useState(false);
@@ -74,28 +79,38 @@ export default function Editor(props: EditorProps) {
     <Spin spinning={loading} className="tsb-spin">
       <div className="flex w-full h-full box-border relative">
         {/* 编辑区域 */}
-        <textarea
-          value={content}
-          placeholder="请输入内容开始编辑"
-          className="flex-1 border-0 w-full h-full block outline-none border-r border-solid border-r-[#eff0f5] resize-none p-4 box-border text-base"
-          onChange={handleChange}
-        />
+        {editorVisible ? (
+          <textarea
+            value={content}
+            placeholder="请输入内容开始编辑"
+            className="flex-1 border-0 w-full h-full block outline-none border-r border-solid border-r-[#eff0f5] resize-none p-4 box-border text-base"
+            onChange={handleChange}
+          />
+        ) : null}
         {/* 预览区域 */}
-        <Markdown
-          className="flex-1 p-4 overflow-auto markdown-body"
-          remarkPlugins={remarkPlugins}
-          rehypePlugins={rehypePlugins}
-        >
-          {content}
-        </Markdown>
-        <div className="absolute top-4 right-4">
-          <button
-            className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"
-            onClick={handlePublishBtnClick}
-          >
-            发布
-          </button>
-        </div>
+				{
+					previewVisible ?
+					<Markdown
+						className="flex-1 p-4 overflow-auto markdown-body"
+						remarkPlugins={remarkPlugins}
+						rehypePlugins={rehypePlugins}
+					>
+						{content}
+					</Markdown>
+					: null
+				}
+
+        {/* 发布按钮 */}
+        {!isOnMobile ? (
+          <div className="absolute top-4 right-4">
+            <button
+              className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"
+              onClick={handlePublishBtnClick}
+            >
+              发布
+            </button>
+          </div>
+        ) : null}
 
         <PublishConfirmModal
           open={publishConfirmModalOpen}

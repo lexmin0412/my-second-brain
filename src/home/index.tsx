@@ -1,10 +1,10 @@
 import {useOssClient} from "@/hooks";
-import {message, Empty} from "antd";
-import {PlusOutlined, GithubOutlined} from "@ant-design/icons";
+import {Button, message, Empty, Drawer} from "antd";
+import {GithubOutlined, PlusOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
-import {OssClientInitProps} from "@/utils";
+import {type OssClientInitProps, isMobile} from "@/utils";
 import {useEffect, useState} from "react";
 import AddFileModal, {
   AddFileModalOnOkValues,
@@ -13,6 +13,11 @@ import Editor from "./components/editor";
 import OSSInitModal from "./components/oss-init-modal";
 import Sidebar, {SidebarItem} from "./components/sidebar";
 import "./index.less";
+import FloatActions from "./components/float-actions";
+import SettingModal, {LayoutVisibleConfig, SettingModalOnOkValues} from "./components/setting-modal";
+import { useLocalStorageState } from "@/hooks/use-local-storage-state";
+
+const isOnMobile = isMobile();
 
 export default function Home() {
   const [editorInitialContent, setEditorInitialContent] = useState("");
@@ -22,6 +27,14 @@ export default function Home() {
   const [selectedSidebarItem, setSelectedSidebarItem] = useState<SidebarItem>();
   const [addFileModalOpen, setAddFileModalOpen] = useState(false);
   const [editorLoading, setEditorLoading] = useState(false);
+  const [settingModalOpen, setSettingModalOpen] = useState(false);
+  const [menuSidebarOpen, setMenuSidebarOpen] = useState(false);
+  const [layoutVisibleConfig, setLayoutVisibleConfig] = useLocalStorageState<LayoutVisibleConfig>('msb-visible-setting', {
+    // 初始化默认值以缓存优先
+    sidebar: true,
+    editor: true,
+    preview: true,
+  });
 
   const handleOssInitModalConfirm = (values: OssClientInitProps) => {
     initOSSClient(values);
@@ -57,23 +70,26 @@ export default function Home() {
           const sliceEndIndex = item.name.indexOf(".md");
           // 如果以斜杠结尾，证明是空文件夹
           if (item.name.endsWith("/")) {
-						const fileName = item.name.slice(sliceStartIndex, item.name.length - 1)
+            const fileName = item.name.slice(
+              sliceStartIndex,
+              item.name.length - 1
+            );
             tempList.push({
               ...item,
               id: item.url,
               title: fileName,
-							fullTitle: fileName,
+              fullTitle: fileName,
               isFolder: true,
             });
           }
           // 如果最后一个斜杠的位置与 /articles/ 结束位置相等，则证明是 articles 下的顶级文件
           else if (sliceStartIndex === lastSlashIndex) {
-						const fileName = item.name.slice(sliceStartIndex, sliceEndIndex)
+            const fileName = item.name.slice(sliceStartIndex, sliceEndIndex);
             tempList.push({
               ...item,
               id: item.url,
               title: fileName,
-							fullTitle: fileName,
+              fullTitle: fileName,
               isFolder: false,
             });
           } else {
@@ -164,22 +180,27 @@ export default function Home() {
     }
   };
 
+  const handleSettingModalConfirm = (values: SettingModalOnOkValues) => {
+    setSettingModalOpen(false);
+    setLayoutVisibleConfig(values.visible);
+  };
+
   const {runAsync: handleFileRename} = useRequest(
-    (newFileName: string, item: SidebarItem) =>
-      {
-				let newFullFileName = ''
-				if (item.title === item.fullTitle) {
-					newFullFileName = newFileName
-				} else {
-					newFullFileName = `${item.fullTitle.slice(0,
-            item.fullTitle.indexOf(item.title) - 1
-          )}/${newFileName}`;
-				}
-				return ossClient?.rename(
-          item.fullTitle,
-          newFullFileName.trim()
-        ) as Promise<unknown>;
-			},
+    (newFileName: string, item: SidebarItem) => {
+      let newFullFileName = "";
+      if (item.title === item.fullTitle) {
+        newFullFileName = newFileName;
+      } else {
+        newFullFileName = `${item.fullTitle.slice(
+          0,
+          item.fullTitle.indexOf(item.title) - 1
+        )}/${newFileName}`;
+      }
+      return ossClient?.rename(
+        item.fullTitle,
+        newFullFileName.trim()
+      ) as Promise<unknown>;
+    },
     {
       manual: true,
       onSuccess: refreshSidebarItems,
@@ -197,8 +218,6 @@ export default function Home() {
       },
     }
   );
-
-  console.log("sidebarItems", sidebarItems);
 
   return (
     <GlobalContext.Provider
@@ -252,27 +271,33 @@ export default function Home() {
         {/* 主内容区 */}
         <div className="flex flex-1 overflow-hidden">
           {/* 侧边栏 */}
-          <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full overflow-auto">
-            <div
-              className="h-10 leading-10 text-center cursor-pointer hover:bg-[#4688ff] hover:text-white"
-              onClick={handleAddBtnClick}
-            >
-              <PlusOutlined /> 新建
-            </div>
+          {!isOnMobile && layoutVisibleConfig.sidebar ? (
+            <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full overflow-auto">
+              {/* <div
+                className="h-10 leading-10 text-center cursor-pointer hover:bg-[#4688ff] hover:text-white"
+                onClick={handleAddBtnClick}
+              >
+                <PlusOutlined /> 新建
+              </div> */}
 
-            <Sidebar
-              loading={sidebarLoading}
-              items={sidebarItems}
-              onChange={handleSidebarChange}
-              onRename={handleFileRename}
-              onDelete={handleFileDelete}
-            />
-          </div>
+              <Sidebar
+                showActionButtons={true}
+                loading={sidebarLoading}
+                items={sidebarItems}
+                onChange={handleSidebarChange}
+                onRename={handleFileRename}
+                onDelete={handleFileDelete}
+                itemClassName="pl-8"
+              />
+            </div>
+          ) : null}
 
           {/* 内容区 只有选中文章时才展示 */}
           <div className="flex-1 h-full box-border">
             {selectedSidebarItem ? (
               <Editor
+								editorVisible={layoutVisibleConfig.editor}
+								previewVisible={layoutVisibleConfig.preview}
                 loading={editorLoading}
                 initialContent={editorInitialContent}
                 onPublishSuccess={handlePublishSuccess}
@@ -305,6 +330,12 @@ export default function Home() {
           .
         </div>
 
+        <FloatActions
+          onAddFile={handleAddBtnClick}
+          onSettingBtnClick={() => setSettingModalOpen(true)}
+          onMenuBtnClick={() => setMenuSidebarOpen(true)}
+        />
+
         <OSSInitModal
           open={ossInitModalOpen}
           onCancel={() => setOssInitModalOpen(false)}
@@ -316,6 +347,43 @@ export default function Home() {
           onCancel={() => setAddFileModalOpen(false)}
           onOk={handleAddFileModalOk}
         />
+
+        <SettingModal
+          open={settingModalOpen}
+          initialValues={{
+            visible: layoutVisibleConfig,
+          }}
+          onCancel={() => setSettingModalOpen(false)}
+          onOk={handleSettingModalConfirm}
+        />
+
+        {/* 侧边栏菜单 */}
+        <Drawer
+          title="文档列表"
+          placement="right"
+          width={"80%"}
+          onClose={() => setMenuSidebarOpen(false)}
+          open={menuSidebarOpen}
+          closable={false}
+        >
+          <div className="h-full flex flex-col">
+            <Sidebar
+              showActionButtons={false}
+              loading={sidebarLoading}
+              items={sidebarItems}
+              onChange={handleSidebarChange}
+              onRename={handleFileRename}
+              onDelete={handleFileDelete}
+            />
+            <Button
+              size="large"
+              type="primary"
+              onClick={() => setMenuSidebarOpen(false)}
+            >
+              关闭
+            </Button>
+          </div>
+        </Drawer>
       </div>
     </GlobalContext.Provider>
   );

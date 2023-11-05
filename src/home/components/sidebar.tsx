@@ -13,10 +13,10 @@ import FileRenameModal from "./file-rename-modal";
 export interface SidebarItem {
   id: string;
   title: string;
-	/**
-	 * 包含了父元素名称的组合
-	 */
-  fullTitle: string
+  /**
+   * 包含了父元素名称的组合
+   */
+  fullTitle: string;
   /**
    * 是否文件夹
    */
@@ -31,16 +31,26 @@ export interface SidebarItem {
 interface SidebarProps {
   loading?: boolean;
   items: SidebarItem[];
+  showActionButtons?: boolean;
   onChange: (fullTitle: string, item: SidebarItem) => void;
   onRename: (newFileName: string, item: SidebarItem) => Promise<unknown>;
   onDelete: (item: SidebarItem) => void;
+  itemClassName?: string
 }
 
 /**
  * 侧边栏
  */
 export default function Sidebar(props: SidebarProps) {
-  const {items, onChange, onRename, onDelete, loading} = props;
+  const {
+    items,
+    onChange,
+    onRename,
+    onDelete,
+    loading,
+    showActionButtons = true,
+    itemClassName = ''
+  } = props;
   const {selectedSidebarItem} = useContext(GlobalContext);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [renamingItem, setRenamingItem] = useState<SidebarItem>();
@@ -85,12 +95,14 @@ export default function Sidebar(props: SidebarProps) {
     parentItem?: SidebarItem;
   }) => {
     const {item, className, parentItem} = props;
-		const fullTitle = parentItem ? `${parentItem.title}/${item.title}` : item.title
+    const fullTitle = parentItem
+      ? `${parentItem.title}/${item.title}`
+      : item.title;
     return (
       <>
         <div
           key={item.id}
-          className={`h-10 flex items-center leading-10 border-0 border-t border-solid border-t-[#eff0f5] px-4 hover:bg-[#4688ff] hover:text-white cursor-pointer ${
+          className={`h-10 flex items-center leading-10 border-0 border-b border-solid border-b-[#eff0f5] px-4 hover:bg-[#4688ff] hover:text-white cursor-pointer ${
             item.id === selectedSidebarItem?.id ? "bg-[#4688ff] text-white" : ""
           }
 					${className}
@@ -107,7 +119,7 @@ export default function Sidebar(props: SidebarProps) {
           >
             {item.title}
           </div>
-          {!item.isFolder ? (
+          {!item.isFolder && showActionButtons ? (
             <>
               <EditOutlined onClick={() => handleRenameBtnClick(item)} />
               <DeleteOutlined
@@ -121,7 +133,7 @@ export default function Sidebar(props: SidebarProps) {
           return (
             <SidebarItemComponent
               item={child}
-              className="pl-8"
+              className={itemClassName}
               parentItem={item}
             />
           );
@@ -131,9 +143,13 @@ export default function Sidebar(props: SidebarProps) {
   };
 
   return (
-    <Spin spinning={loading}>
+    <div className="flex-1 overflow-auto">
       {items.map((item: SidebarItem) => {
-        return <SidebarItemComponent item={item} />;
+        return (
+          <Spin spinning={loading}>
+            <SidebarItemComponent item={item} />
+          </Spin>
+        );
       })}
 
       <FileRenameModal
@@ -147,6 +163,6 @@ export default function Sidebar(props: SidebarProps) {
           fileName: renamingItem?.title as string,
         }}
       />
-    </Spin>
+    </div>
   );
 }

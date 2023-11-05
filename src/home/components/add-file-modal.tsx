@@ -1,5 +1,6 @@
-import {Modal, Form, Input, Radio} from "antd";
+import { Form, Input, Radio} from "antd";
 import {useEffect} from "react";
+import ModalEnhancer from "./base/modal-enhancer";
 
 export interface AddFileModalOnOkValues {
   fileName: string;
@@ -35,7 +36,7 @@ export default function AddFileModal(props: AddFileModalProps) {
   console.log("form.getFieldsValue", form.getFieldsValue());
 
   return (
-    <Modal
+    <ModalEnhancer
       title="新增文档"
       open={open}
       onCancel={onCancel}
@@ -85,6 +86,6 @@ export default function AddFileModal(props: AddFileModalProps) {
           <Input type="text" placeholder="请输入文件名" />
         </Form.Item>
       </Form>
-    </Modal>
+    </ModalEnhancer>
   );
 }
