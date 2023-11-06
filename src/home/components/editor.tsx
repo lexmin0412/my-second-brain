@@ -71,6 +71,8 @@ export default function Editor(props: EditorProps) {
     (e, handler) => {
       console.log("触发了", handler);
 			const { keys, ...restHandlers } = handler
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
 			const funcKey = Object.keys(restHandlers).filter((key)=>!!handler[key]).join('')
 			const fullKeys = `${funcKey}+${keys?.join('')}`
 			console.log("fullKeys", fullKeys);
