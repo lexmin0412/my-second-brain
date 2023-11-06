@@ -4,9 +4,11 @@ import Markdown from "react-markdown";
 import reactGFM from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from 'rehype-raw'
+import {useHotkeys} from "react-hotkeys-hook";
 import PublishConfirmModal from "./publish-confirm-modal";
 import {GlobalContext} from "@/hooks/context";
 import { isMobile } from "@/utils";
+import { ShortCutAction, ShortCutMap } from "@/types";
 
 interface EditorProps {
   /**
@@ -33,6 +35,52 @@ export default function Editor(props: EditorProps) {
   const [content, setContent] = useState("");
   const [publishConfirmModalOpen, setPublishConfirmModalOpen] = useState(false);
   const {ossClient, selectedSidebarItem} = useContext(GlobalContext);
+
+	/**
+	 * 通过快捷键插入内容
+	 * TODO 在光标位置插入
+	 */
+	const updateContent = (action: ShortCutAction) => {
+		switch (action) {
+			case 'bold':
+				setContent(`${content}****`);
+				break;
+			case 'italic':
+				setContent(`${content}**`);
+				break;
+			case 'link':
+				setContent(`${content}[]()`);
+				break;
+			case 'image':
+				setContent(`${content}![]()`);
+				break;
+			case 'code':
+				setContent(`${content}\n\`\`\`\n\n\`\`\``);
+				break;
+			case 'table':
+				setContent(`${content}|标题|字段1|字段2|\n|-|-|-|\n`);
+				break
+			default:
+				break;
+		}
+		setContent
+	}
+
+	useHotkeys(
+    Object.keys(ShortCutMap),
+    (e, handler) => {
+      console.log("触发了", handler);
+			const { keys, ...restHandlers } = handler
+			const funcKey = Object.keys(restHandlers).filter((key)=>!!handler[key]).join('')
+			const fullKeys = `${funcKey}+${keys?.join('')}`
+			console.log("fullKeys", fullKeys);
+			updateContent(ShortCutMap[fullKeys]);
+    },
+    {
+      enableOnFormTags: true,
+      preventDefault: true,
+    }
+  );
 
   useEffect(() => {
     setContent(initialContent);

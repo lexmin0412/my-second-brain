@@ -21,6 +21,7 @@ specifiers:
   postcss: ^8.4.31
   react: ^18.2.0
   react-dom: ^18.2.0
+  react-hotkeys-hook: ^4.4.1
   react-markdown: ^9.0.0
   rehype-highlight: ^7.0.0
   rehype-raw: ^7.0.0
@@ -38,6 +39,7 @@ dependencies:
   dayjs: 1.11.10
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
+  react-hotkeys-hook: 4.4.1_biqbaboplfbrettd7655fr4n2y
   react-markdown: 9.0.0_o5ysialsahsznabqayk7pree4e
   rehype-highlight: 7.0.0
   rehype-raw: 7.0.0
@@ -4751,6 +4753,16 @@ packages:
       loose-envify: 1.4.0
       react: 18.2.0
       scheduler: 0.23.0
+    dev: false
+
+  /react-hotkeys-hook/4.4.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-sClBMBioFEgFGYLTWWRKvhxcCx1DRznd+wkFHwQZspnRBkHTgruKIHptlK/U/2DPX8BhHoRGzpMVWUXMmdZlmw==}
+    peerDependencies:
+      react: '>=16.8.1'
+      react-dom: '>=16.8.1'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /react-is/18.2.0:
