@@ -9,7 +9,6 @@ import {GlobalContext} from "@/hooks/context";
 import {useContext, useState} from "react";
 import {useRequest} from "ahooks";
 import FileRenameModal from "./file-rename-modal";
-import { isMobile } from "@/utils";
 
 export interface SidebarItem {
   id: string;
@@ -36,7 +35,6 @@ interface SidebarProps {
   onChange: (fullTitle: string, item: SidebarItem) => void;
   onRename: (newFileName: string, item: SidebarItem) => Promise<unknown>;
   onDelete: (item: SidebarItem) => void;
-  itemClassName?: string
 }
 
 /**
@@ -50,7 +48,6 @@ export default function Sidebar(props: SidebarProps) {
     onDelete,
     loading,
     showActionButtons = true,
-    itemClassName = ''
   } = props;
   const {selectedSidebarItem} = useContext(GlobalContext);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
@@ -99,7 +96,6 @@ export default function Sidebar(props: SidebarProps) {
     const fullTitle = parentItem
       ? `${parentItem.title}/${item.title}`
       : item.title;
-		const borderClassNames = isMobile() ? "border-0 border-b border-solid border-b-[#eff0f5]" : ''
     return (
       <>
         <div
