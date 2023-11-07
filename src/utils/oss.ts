@@ -9,7 +9,6 @@ export interface OssClientInitProps {
 
 class OssClient {
   constructor(props: OssClientInitProps) {
-    console.log("props", props);
     const store = new OSS({
       region: props.region,
       accessKeyId: props.accessKeyId,
@@ -48,6 +47,20 @@ class OssClient {
       new OSS.Buffer("")
     );
   };
+
+	/**
+	 * 删除目录
+	 */
+	deleteFolder = async(folderName: string) => {
+		console.log('enter delete folder', folderName)
+		// 列出所有子项
+		const result = await this.store.list({
+			prefix: `apis/my-second-brain/articles/${folderName}`,
+			"max-keys": 100
+		}, {});
+		// 一次删除多个文件
+		return this.store.deleteMulti(result.objects.map((item)=>item.name))
+	}
 
   get = (fileName: string) => {
     return this.store.get(`apis/my-second-brain/articles/${fileName}.md`);
