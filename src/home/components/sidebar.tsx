@@ -115,7 +115,7 @@ export default function Sidebar(props: SidebarProps) {
           >
             {item.title}
           </div>
-          {!item.isFolder && showActionButtons ? (
+          {showActionButtons ? (
             <>
               <EditOutlined onClick={() => handleRenameBtnClick(item)} />
               <DeleteOutlined

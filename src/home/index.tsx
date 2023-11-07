@@ -225,12 +225,15 @@ export default function Home() {
 
   const {runAsync: handleFileDelete} = useRequest(
     (item: SidebarItem) => {
+			if (item.isFolder) {
+				return ossClient?.deleteFolder(item.fullTitle) as Promise<unknown>
+			}
       return ossClient?.delete(item.fullTitle) as Promise<unknown>;
     },
     {
       manual: true,
       onSuccess: () => {
-        refreshSidebarItems();
+				refreshSidebarItems();
       },
     }
   );
