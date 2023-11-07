@@ -1,4 +1,5 @@
 import OSS from "ali-oss";
+import { getNameWithoutSuffix, replaceName } from ".";
 
 export interface OssClientInitProps {
   region: string;
@@ -20,10 +21,10 @@ class OssClient {
 
   store: OSS;
 
-  list = () => {
+  list = (customPrefix?: string) => {
     return this.store.list(
       {
-        prefix: "apis/my-second-brain/articles",
+				prefix: `apis/my-second-brain/articles${customPrefix||''}`,
         "max-keys": 100,
       },
       {}
@@ -84,6 +85,21 @@ class OssClient {
       res,
     });
   };
+
+	renameFolder = async(sourceFolderName: string, targetFolderName: string) => {
+		await this.addFolder(targetFolderName)
+		const result = await this.list(`/${sourceFolderName}`)
+		const promises = result.objects?.filter(item=>item.name.endsWith('.md')).map((item)=>{
+			const nameWithoutSuffix = getNameWithoutSuffix(item.name)
+			const targetName = replaceName(nameWithoutSuffix, sourceFolderName, targetFolderName)
+			// TODO 替换成内部方法实现
+			return this.store.copy(`${targetName}.md`, `${nameWithoutSuffix}.md`)
+		})
+		await Promise.all(promises)
+		// FIXME: 这里的删除如果打开就会把老文件和复制的文件一起删掉
+		// await this.deleteFolder(sourceFolderName)
+		return Promise.resolve()
+	}
 }
 
 export default OssClient;
