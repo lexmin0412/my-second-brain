@@ -203,6 +203,9 @@ export default function Home() {
 
   const {runAsync: handleFileRename} = useRequest(
     (newFileName: string, item: SidebarItem) => {
+			if (item.isFolder) {
+				return ossClient?.renameFolder(item.title, newFileName) as Promise<unknown>
+			}
       let newFullFileName = "";
       if (item.title === item.fullTitle) {
         newFullFileName = newFileName;
