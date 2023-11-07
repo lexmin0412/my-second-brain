@@ -26,6 +26,7 @@ export interface SidebarItem {
    */
   children?: SidebarItem[];
   lastModified?: string;
+  name: string
 }
 
 interface SidebarProps {

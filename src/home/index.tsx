@@ -20,6 +20,7 @@ import { useLocalStorageState } from "@/hooks/use-local-storage-state";
 const isOnMobile = isMobile();
 
 export default function Home() {
+	const currentFileName = window.location.search?.slice(10);
   const [editorInitialContent, setEditorInitialContent] = useState("");
   const {ossClient, ossInitModalOpen, initOSSClient, setOssInitModalOpen} =
     useOssClient();
@@ -49,6 +50,10 @@ export default function Home() {
   const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
     const fileName = fullTitle;
     setEditorLoading(true);
+
+		// 修改 history path
+		history.pushState(null, '', `/my-second-brain/?fileName=${item.name}`)
+
     try {
       const result = await ossClient?.get(fileName);
       setEditorLoading(false);
@@ -114,6 +119,7 @@ export default function Home() {
             } else {
               tempList.push({
                 ...item,
+                name: item.name.slice(0, item.name.lastIndexOf(fileName)),
                 id: itemTitle,
                 title: folderName,
                 fullTitle: folderName,
@@ -139,6 +145,28 @@ export default function Home() {
           return sorted ? -1 : 1;
         });
         setSidebarItems(newList);
+				console.log("newList", newList);
+				let selectedItem: SidebarItem | undefined = undefined
+				newList.find(
+          (item) => {
+						console.log("item.name", item.name);
+            console.log("currentFileName", currentFileName);
+						if (item.name === decodeURIComponent(currentFileName)) {
+							selectedItem = item
+						} else {
+							if (item.children) {
+								item.children.forEach((ele)=>{
+									if (ele.name === decodeURIComponent(currentFileName)) {
+										selectedItem = ele
+                  }
+								})
+							}
+						}
+					}
+        );
+				if (selectedItem) {
+					handleSidebarChange((selectedItem as SidebarItem).fullTitle, selectedItem)
+				}
         return newList;
       }) as Promise<SidebarItem[]>;
     }
