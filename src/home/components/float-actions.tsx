@@ -3,7 +3,8 @@ import {
   PlusOutlined,
   EllipsisOutlined,
 	SettingOutlined,
-	MenuOutlined
+	MenuOutlined,
+	LogoutOutlined
 } from "@ant-design/icons";
 import { isMobile } from "@/utils";
 import { ReactNode } from "react";
@@ -18,11 +19,16 @@ interface ButtonItem {
 interface FloatActionsProps {
   onAddFile: () => void;
   onSettingBtnClick: () => void;
-  onMenuBtnClick: () => void
+  onMenuBtnClick: () => void;
 }
 
 export default function FloatActions(props: FloatActionsProps) {
   const {onAddFile, onSettingBtnClick, onMenuBtnClick} = props;
+
+	const onLogout = () => {
+		localStorage.removeItem("oss-config");
+		window.location.reload()
+	}
 
   const buttonList: ButtonItem[] = [
     {
@@ -38,6 +44,12 @@ export default function FloatActions(props: FloatActionsProps) {
       onClick: onSettingBtnClick,
       visible: !isMobile(),
     },
+		{
+			key: 'log-out',
+			icon: <LogoutOutlined />,
+			onClick: onLogout,
+			visible: true,
+		},
     {
       key: "menu-sidebar",
       icon: <MenuOutlined />,
