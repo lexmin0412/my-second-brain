@@ -113,6 +113,7 @@ export default function Sidebar(props: SidebarProps) {
           <div
             className="flex ellipsis-single mr-2 text-inherit flex-1"
             onClick={() => handleSidebarItemCLick(fullTitle, item)}
+						title={item.title}
           >
             {item.title}
           </div>
