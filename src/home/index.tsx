@@ -1,11 +1,11 @@
 import {useOssClient} from "@/hooks";
-import {Button, message, Empty, Drawer} from "antd";
+import {Button, message, Empty, Drawer, Modal} from "antd";
 import {GithubOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
 import {type OssClientInitProps, isMobile} from "@/utils";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import AddFileModal, {
   AddFileModalOnOkValues,
 } from "./components/add-file-modal";
@@ -14,13 +14,17 @@ import OSSInitModal from "./components/oss-init-modal";
 import Sidebar, {SidebarItem} from "./components/sidebar";
 import "./index.less";
 import FloatActions from "./components/float-actions";
-import SettingModal, {LayoutVisibleConfig, SettingModalOnOkValues} from "./components/setting-modal";
-import { useLocalStorageState } from "@/hooks/use-local-storage-state";
+import SettingModal, {
+  LayoutVisibleConfig,
+  SettingModalOnOkValues,
+} from "./components/setting-modal";
+import {useLocalStorageState} from "@/hooks/use-local-storage-state";
+import { EditorRef } from "./components/editor/types";
 
 const isOnMobile = isMobile();
 
 export default function Home() {
-	const currentFileName = window.location.search?.slice(10);
+  const currentFileName = window.location.search?.slice(10);
   const [editorInitialContent, setEditorInitialContent] = useState("");
   const {ossClient, ossInitModalOpen, initOSSClient, setOssInitModalOpen} =
     useOssClient();
@@ -30,29 +34,25 @@ export default function Home() {
   const [editorLoading, setEditorLoading] = useState(false);
   const [settingModalOpen, setSettingModalOpen] = useState(false);
   const [menuSidebarOpen, setMenuSidebarOpen] = useState(false);
-  const [layoutVisibleConfig, setLayoutVisibleConfig] = useLocalStorageState<LayoutVisibleConfig>('msb-visible-setting', {
-    // 初始化默认值以缓存优先
-    sidebar: true,
-    editor: true,
-    preview: true,
-  });
+  const [layoutVisibleConfig, setLayoutVisibleConfig] =
+    useLocalStorageState<LayoutVisibleConfig>("msb-visible-setting", {
+      // 初始化默认值以缓存优先
+      sidebar: true,
+      editor: true,
+      preview: true,
+    });
+  const editorRef = useRef<EditorRef|null>(null);
+  // 当前文章是否在本地有更改未发布
+  const [contentUnPublished, setContentUnPublished] = useState(false);
 
   const handleOssInitModalConfirm = (values: OssClientInitProps) => {
     initOSSClient(values);
     setOssInitModalOpen(false);
   };
 
-  /**
-   * 切换 sidebar
-   * @param fullTitle 完整标题，如果是嵌套接口，则 fullTitle 为 parent/title
-   * @param item 选中的item
-   */
-  const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
-    const fileName = fullTitle;
-    setEditorLoading(true);
-
-		// 修改 history path
-		history.pushState(null, '', `/my-second-brain/?fileName=${item.name}`)
+	const toggleDoc = async (fileName: string, item: SidebarItem) => {
+    // 修改 history path
+    history.pushState(null, "", `/my-second-brain/?fileName=${item.name}`);
 
     try {
       const result = await ossClient?.get(fileName);
@@ -63,6 +63,42 @@ export default function Home() {
       console.log("get file error", error);
       message.error("内容加载失败");
     }
+  };
+
+  /**
+   * 切换 sidebar
+   * @param fullTitle 完整标题，如果是嵌套接口，则 fullTitle 为 parent/title
+   * @param item 选中的item
+   */
+  const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
+    setEditorLoading(true);
+
+		console.log("item.name", item.name, contentUnPublished);
+    if (contentUnPublished) {
+			console.log('即将出发 Modal Confirm')
+      Modal.confirm({
+        maskClosable: false,
+        closable: false,
+        title: "当前文档有更改未发布，是否立即发布",
+        content: "未发布的内容将仅缓存在本地，存在数据丢失风险",
+        okText: "发布并继续当前操作",
+        cancelText: "忽略并继续当前操作",
+        onOk: async() => {
+					console.log('开始发布')
+          await editorRef.current?.publish();
+					console.log('结束发布')
+          toggleDoc(fullTitle, item);
+					setContentUnPublished(false)
+					return Promise.resolve()
+        },
+        onCancel: () => {
+          toggleDoc(fullTitle, item);
+					setContentUnPublished(false);
+        },
+      });
+    } else {
+			toggleDoc(fullTitle, item);
+		}
   };
 
   const {runAsync: refreshSidebarItems, loading: sidebarLoading} = useRequest(
@@ -145,28 +181,24 @@ export default function Home() {
           return sorted ? -1 : 1;
         });
         setSidebarItems(newList);
-				console.log("newList", newList);
-				let selectedItem: SidebarItem | undefined = undefined
-				newList.find(
-          (item) => {
-						console.log("item.name", item.name);
-            console.log("currentFileName", currentFileName);
-						if (item.name === decodeURIComponent(currentFileName)) {
-							selectedItem = item
-						} else {
-							if (item.children) {
-								item.children.forEach((ele)=>{
-									if (ele.name === decodeURIComponent(currentFileName)) {
-										selectedItem = ele
-                  }
-								})
-							}
-						}
-					}
-        );
-				if (selectedItem) {
-					handleSidebarChange((selectedItem as SidebarItem).fullTitle, selectedItem)
-				}
+        console.log("newList", newList);
+        let selectedItem: SidebarItem | undefined = undefined;
+        newList.find((item) => {
+          if (item.name === decodeURIComponent(currentFileName)) {
+            selectedItem = item;
+          } else {
+            if (item.children) {
+              item.children.forEach((ele) => {
+                if (ele.name === decodeURIComponent(currentFileName)) {
+                  selectedItem = ele;
+                }
+              });
+            }
+          }
+        });
+        if (selectedItem) {
+          toggleDoc((selectedItem as SidebarItem).fullTitle, selectedItem);
+        }
         return newList;
       }) as Promise<SidebarItem[]>;
     }
@@ -197,27 +229,26 @@ export default function Home() {
     handlePublishSuccess();
     const refreshRes = await refreshSidebarItems();
 
-		// 截取真实文件名
-		const slashIndex = values.fileName.indexOf('/');
-		const trulyFileName = slashIndex > -1 ? values.fileName.slice(slashIndex+1) : values.fileName
+    // 截取真实文件名
+    const slashIndex = values.fileName.indexOf("/");
+    const trulyFileName =
+      slashIndex > -1 ? values.fileName.slice(slashIndex + 1) : values.fileName;
 
-    let newSelectedItem: SidebarItem | undefined = undefined
-		refreshRes?.find(
-      (item: SidebarItem) => {
-				if (item.title === trulyFileName) {
-					newSelectedItem = item
-        }
-				if (item.children?.length) {
-					item.children.find((child)=>{
-						if (child.title === trulyFileName) {
-							newSelectedItem = child
-            }
-					})
-				}
-			}
-    );
+    let newSelectedItem: SidebarItem | undefined = undefined;
+    refreshRes?.find((item: SidebarItem) => {
+      if (item.title === trulyFileName) {
+        newSelectedItem = item;
+      }
+      if (item.children?.length) {
+        item.children.find((child) => {
+          if (child.title === trulyFileName) {
+            newSelectedItem = child;
+          }
+        });
+      }
+    });
     if (values.type === "file" && newSelectedItem) {
-      handleSidebarChange(
+      toggleDoc(
         (newSelectedItem as SidebarItem).fullTitle as string,
         newSelectedItem as SidebarItem
       );
@@ -231,9 +262,12 @@ export default function Home() {
 
   const {runAsync: handleFileRename} = useRequest(
     (newFileName: string, item: SidebarItem) => {
-			if (item.isFolder) {
-				return ossClient?.renameFolder(item.title, newFileName) as Promise<unknown>
-			}
+      if (item.isFolder) {
+        return ossClient?.renameFolder(
+          item.title,
+          newFileName
+        ) as Promise<unknown>;
+      }
       let newFullFileName = "";
       if (item.title === item.fullTitle) {
         newFullFileName = newFileName;
@@ -256,20 +290,20 @@ export default function Home() {
 
   const {runAsync: handleFileDelete} = useRequest(
     (item: SidebarItem) => {
-			if (item.isFolder) {
-				return ossClient?.deleteFolder(item.fullTitle) as Promise<unknown>
-			}
+      if (item.isFolder) {
+        return ossClient?.deleteFolder(item.fullTitle) as Promise<unknown>;
+      }
       return ossClient?.delete(item.fullTitle) as Promise<unknown>;
     },
     {
       manual: true,
       onSuccess: () => {
-				refreshSidebarItems();
+        refreshSidebarItems();
       },
     }
   );
 
-	const folderOptions = sidebarItems.filter((item)=>item.isFolder)
+  const folderOptions = sidebarItems.filter((item) => item.isFolder);
 
   return (
     <GlobalContext.Provider
@@ -347,11 +381,13 @@ export default function Home() {
           <div className="flex-1 h-full box-border overflow-hidden">
             {selectedSidebarItem ? (
               <Editor
+                ref={editorRef}
                 editorVisible={layoutVisibleConfig.editor}
                 previewVisible={layoutVisibleConfig.preview}
                 loading={editorLoading}
                 initialContent={editorInitialContent}
                 onPublishSuccess={handlePublishSuccess}
+                onContentUpdate={() => setContentUnPublished(true)}
               />
             ) : (
               <Empty
@@ -428,7 +464,7 @@ export default function Home() {
               showActionButtons={false}
               loading={sidebarLoading}
               items={sidebarItems}
-              onChange={handleSidebarChange}
+              onChange={toggleDoc}
               onRename={handleFileRename}
               onDelete={handleFileDelete}
             />

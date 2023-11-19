@@ -1,16 +1,17 @@
-import {ChangeEvent, useContext, useState} from "react";
+import {ChangeEvent, forwardRef, useContext, useImperativeHandle, useState} from "react";
 import {message, Modal, Spin} from "antd";
 import Markdown from "react-markdown";
 import reactGFM from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
 import {useHotkeys} from "react-hotkeys-hook";
-import PublishConfirmModal from "./publish-confirm-modal";
+import PublishConfirmModal from "../publish-confirm-modal";
 import {GlobalContext} from "@/hooks/context";
 import {isMobile} from "@/utils";
 import {ShortCutAction, ShortCutMap} from "@/types";
 import {useStorageContent} from "@/hooks/use-storage-content";
-import CompareModal from "./compare-modal";
+import CompareModal from "../compare-modal";
+import { EditorRef } from "./types";
 
 interface EditorProps {
   /**
@@ -27,28 +28,33 @@ interface EditorProps {
   onPublishSuccess: () => void;
   editorVisible: boolean;
   previewVisible: boolean;
+	/**
+	 * 内容更新，用户触发编辑器修改时调用，用于判断本地文章是否有更改
+	 */
+  onContentUpdate: () => void
 }
 
 const isOnMobile = isMobile();
 
-export default function Editor(props: EditorProps) {
+export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
+  props,
+  ref
+) => {
   const {
     loading,
     initialContent,
     onPublishSuccess,
     editorVisible,
     previewVisible,
+    onContentUpdate,
   } = props;
 
   const [content, setContent] = useState("");
   const [publishConfirmModalOpen, setPublishConfirmModalOpen] = useState(false);
   const {ossClient, selectedSidebarItem} = useContext(GlobalContext);
 
-	// 监听 content ，更新本地缓存
-  useStorageContent(
-    `MSB-Content-${selectedSidebarItem?.fullTitle}`,
-    content
-  );
+  // 监听 content ，更新本地缓存
+  useStorageContent(`MSB-Content-${selectedSidebarItem?.fullTitle}`, content);
 
   /**
    * 通过快捷键插入内容
@@ -103,6 +109,7 @@ export default function Editor(props: EditorProps) {
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
+		onContentUpdate()
   };
 
   /**
@@ -110,6 +117,7 @@ export default function Editor(props: EditorProps) {
    */
   const handleDocUpdate = async (values: {fileName: string}) => {
     await ossClient?.put(values.fileName, content);
+		console.log('发布完成')
     message.success("发布成功");
     setPublishConfirmModalOpen(false);
     onPublishSuccess();
@@ -137,6 +145,16 @@ export default function Editor(props: EditorProps) {
   const remarkPlugins = [reactGFM];
   // 高亮插件
   const rehypePlugins = [rehypeRaw, rehypeHighlight];
+
+  useImperativeHandle(ref, () => {
+    return {
+      publish: () => {
+				return handleDocUpdate({
+          fileName: selectedSidebarItem?.fullTitle as string,
+        });
+			},
+    };
+  });
 
   return (
     <Spin spinning={loading} className="tsb-spin">
@@ -189,4 +207,6 @@ export default function Editor(props: EditorProps) {
       </div>
     </Spin>
   );
-}
+};
+
+export default forwardRef(Editor)
