@@ -1,14 +1,16 @@
-import {ChangeEvent, useContext, useEffect, useState} from "react";
+import {ChangeEvent, useContext, useState} from "react";
 import {message, Modal, Spin} from "antd";
 import Markdown from "react-markdown";
 import reactGFM from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
-import rehypeRaw from 'rehype-raw'
+import rehypeRaw from "rehype-raw";
 import {useHotkeys} from "react-hotkeys-hook";
 import PublishConfirmModal from "./publish-confirm-modal";
 import {GlobalContext} from "@/hooks/context";
-import { isMobile } from "@/utils";
-import { ShortCutAction, ShortCutMap } from "@/types";
+import {isMobile} from "@/utils";
+import {ShortCutAction, ShortCutMap} from "@/types";
+import {useStorageContent} from "@/hooks/use-storage-content";
+import CompareModal from "./compare-modal";
 
 interface EditorProps {
   /**
@@ -24,69 +26,80 @@ interface EditorProps {
    */
   onPublishSuccess: () => void;
   editorVisible: boolean;
-  previewVisible: boolean
+  previewVisible: boolean;
 }
 
 const isOnMobile = isMobile();
 
 export default function Editor(props: EditorProps) {
-  const {loading, initialContent, onPublishSuccess, editorVisible, previewVisible} = props;
+  const {
+    loading,
+    initialContent,
+    onPublishSuccess,
+    editorVisible,
+    previewVisible,
+  } = props;
 
   const [content, setContent] = useState("");
   const [publishConfirmModalOpen, setPublishConfirmModalOpen] = useState(false);
   const {ossClient, selectedSidebarItem} = useContext(GlobalContext);
 
-	/**
-	 * 通过快捷键插入内容
-	 * TODO 在光标位置插入
-	 */
-	const updateContent = (action: ShortCutAction) => {
-		switch (action) {
-			case 'bold':
-				setContent(`${content}****`);
-				break;
-			case 'italic':
-				setContent(`${content}**`);
-				break;
-			case 'link':
-				setContent(`${content}[]()`);
-				break;
-			case 'image':
-				setContent(`${content}![]()`);
-				break;
-			case 'code':
-				setContent(`${content}\n\`\`\`\n\n\`\`\``);
-				break;
-			case 'table':
-				setContent(`${content}|标题|字段1|字段2|\n|-|-|-|\n`);
-				break
-			default:
-				break;
-		}
-		setContent
-	}
+	// 监听 content ，更新本地缓存
+  useStorageContent(
+    `MSB-Content-${selectedSidebarItem?.fullTitle}`,
+    content
+  );
 
-	useHotkeys(
+  /**
+   * 通过快捷键插入内容
+   * TODO 在光标位置插入
+   */
+  const updateContent = (action: ShortCutAction) => {
+    switch (action) {
+      case "bold":
+        setContent(`${content}****`);
+        break;
+      case "italic":
+        setContent(`${content}**`);
+        break;
+      case "link":
+        setContent(`${content}[]()`);
+        break;
+      case "image":
+        setContent(`${content}![]()`);
+        break;
+      case "code":
+        setContent(`${content}\n\`\`\`\n\n\`\`\``);
+        break;
+      case "table":
+        setContent(`${content}|标题|字段1|字段2|\n|-|-|-|\n`);
+        break;
+      default:
+        break;
+    }
+  };
+
+  useHotkeys(
     Object.keys(ShortCutMap),
     (e, handler) => {
       console.log("触发了", handler);
-			const { keys, ...restHandlers } = handler
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			const funcKey = Object.keys(restHandlers).filter((key)=>!!handler[key]).join('')
-			const fullKeys = `${funcKey}+${keys?.join('')}`
-			console.log("fullKeys", fullKeys);
-			updateContent(ShortCutMap[fullKeys]);
+      const {keys, ...restHandlers} = handler;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const funcKey = Object.keys(restHandlers)
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .filter((key) => handler[key])
+        .join("");
+      const fullKeys = `${funcKey}+${keys?.join("")}`;
+      console.log("fullKeys", fullKeys);
+      updateContent(ShortCutMap[fullKeys]);
     },
     {
       enableOnFormTags: true,
       preventDefault: true,
     }
   );
-
-  useEffect(() => {
-    setContent(initialContent);
-  }, [initialContent]);
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
@@ -111,7 +124,7 @@ export default function Editor(props: EditorProps) {
         title: "发布确认",
         onOk: () => {
           return handleDocUpdate({
-            fileName: selectedSidebarItem.fullTitle,
+            fileName: selectedSidebarItem?.fullTitle,
           });
         },
       });
@@ -138,17 +151,15 @@ export default function Editor(props: EditorProps) {
           />
         ) : null}
         {/* 预览区域 */}
-				{
-					previewVisible ?
-					<Markdown
-						className="flex-1 p-4 overflow-auto markdown-body"
-						remarkPlugins={remarkPlugins}
-						rehypePlugins={rehypePlugins}
-					>
-						{content}
-					</Markdown>
-					: null
-				}
+        {previewVisible ? (
+          <Markdown
+            className="flex-1 p-4 overflow-auto markdown-body"
+            remarkPlugins={remarkPlugins}
+            rehypePlugins={rehypePlugins}
+          >
+            {content}
+          </Markdown>
+        ) : null}
 
         {/* 发布按钮 */}
         {!isOnMobile ? (
@@ -166,6 +177,14 @@ export default function Editor(props: EditorProps) {
           open={publishConfirmModalOpen}
           onCancel={() => setPublishConfirmModalOpen(false)}
           onOk={handleDocUpdate}
+        />
+
+        <CompareModal
+          fileKey={selectedSidebarItem?.fullTitle || ""}
+          initialContent={initialContent}
+          onInitialzed={(newContent) => {
+            setContent(newContent);
+          }}
         />
       </div>
     </Spin>
