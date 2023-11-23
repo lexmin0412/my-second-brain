@@ -4,6 +4,8 @@ import {
   DeleteOutlined,
   FolderOpenOutlined,
   FileOutlined,
+  DownOutlined,
+  UpOutlined,
 } from "@ant-design/icons";
 import {GlobalContext} from "@/hooks/context";
 import {useContext, useState} from "react";
@@ -26,7 +28,7 @@ export interface SidebarItem {
    */
   children?: SidebarItem[];
   lastModified?: string;
-  name: string
+  name: string;
 }
 
 interface SidebarProps {
@@ -53,9 +55,18 @@ export default function Sidebar(props: SidebarProps) {
   const {selectedSidebarItem} = useContext(GlobalContext);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [renamingItem, setRenamingItem] = useState<SidebarItem>();
+  const [openFolderKeys, setOpenFolderKeys] = useState<string[]>([]);
 
   const handleSidebarItemCLick = (fullTitle: string, item: SidebarItem) => {
     if (item.isFolder) {
+      const openedIndex = openFolderKeys.findIndex((ele) => ele === item.id);
+      if (openedIndex > -1) {
+        const newList = [...openFolderKeys];
+        newList.splice(openedIndex, 1);
+        setOpenFolderKeys(newList);
+      } else {
+        setOpenFolderKeys([...openFolderKeys, item.id]);
+      }
       return;
     }
     onChange(fullTitle, item);
@@ -97,6 +108,7 @@ export default function Sidebar(props: SidebarProps) {
     const fullTitle = parentItem
       ? `${parentItem.title}/${item.title}`
       : item.title;
+    const isFolderOpen = openFolderKeys.includes(item.id);
     return (
       <>
         <div
@@ -113,10 +125,19 @@ export default function Sidebar(props: SidebarProps) {
           <div
             className="flex ellipsis-single mr-2 text-inherit flex-1"
             onClick={() => handleSidebarItemCLick(fullTitle, item)}
-						title={item.title}
+            title={item.title}
           >
             {item.title}
           </div>
+          {item.isFolder ? (
+            <>
+              {isFolderOpen ? (
+                <UpOutlined className="mr-2" />
+              ) : (
+                <DownOutlined className="mr-2" />
+              )}
+            </>
+          ) : null}
           {showActionButtons ? (
             <>
               <EditOutlined onClick={() => handleRenameBtnClick(item)} />
@@ -127,15 +148,17 @@ export default function Sidebar(props: SidebarProps) {
             </>
           ) : null}
         </div>
-        {item.children?.map((child) => {
-          return (
-            <SidebarItemComponent
-              item={child}
-              className="pl-6"
-              parentItem={item}
-            />
-          );
-        })}
+        {isFolderOpen
+          ? item.children?.map((child) => {
+              return (
+                <SidebarItemComponent
+                  item={child}
+                  className="pl-6"
+                  parentItem={item}
+                />
+              );
+            })
+          : null}
       </>
     );
   };
@@ -145,7 +168,7 @@ export default function Sidebar(props: SidebarProps) {
       {items.map((item: SidebarItem) => {
         return (
           <Spin spinning={loading}>
-            <SidebarItemComponent item={item} className='pl-2' />
+            <SidebarItemComponent item={item} className="pl-2" />
           </Spin>
         );
       })}
