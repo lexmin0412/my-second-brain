@@ -358,7 +358,7 @@ export default function Home() {
         <div className="flex flex-1 overflow-hidden">
           {/* 侧边栏 */}
           {!isOnMobile && layoutVisibleConfig.sidebar ? (
-            <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full overflow-auto">
+            <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full overflow-auto resize-x">
               {/* <div
                 className="h-10 leading-10 text-center cursor-pointer hover:bg-[#4688ff] hover:text-white"
                 onClick={handleAddBtnClick}
