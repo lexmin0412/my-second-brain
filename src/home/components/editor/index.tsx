@@ -12,6 +12,8 @@ import {ShortCutAction, ShortCutMap} from "@/types";
 import {useStorageContent} from "@/hooks/use-storage-content";
 import CompareModal from "../compare-modal";
 import { EditorRef } from "./types";
+import { pastImage } from "@/utils/clipboard";
+import { createRandomId } from "@/utils/id";
 
 interface EditorProps {
   /**
@@ -60,7 +62,8 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
    * 通过快捷键插入内容
    * TODO 在光标位置插入
    */
-  const updateContent = (action: ShortCutAction) => {
+  const updateContent = async(action: ShortCutAction) => {
+		console.log('action', action)
     switch (action) {
       case "bold":
         setContent(`${content}****`);
@@ -72,7 +75,15 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
         setContent(`${content}[]()`);
         break;
       case "image":
-        setContent(`${content}![]()`);
+				const result = await pastImage()
+				const randomName = createRandomId()
+				const uploadRes = await ossClient?.uploadImage(
+          randomName,
+          result as string
+        );
+				if (uploadRes?.url) {
+					setContent(`${content}![image](${uploadRes.url})`);
+        }
         break;
       case "code":
         setContent(`${content}\n\`\`\`\n\n\`\`\``);
