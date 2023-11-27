@@ -31,6 +31,20 @@ class OssClient {
     );
   };
 
+	/**
+	 * 上传图片
+	 * @param fileName 文件名
+	 * @param blob 本地 Blob 对象
+	 * @returns
+	 */
+	uploadImage = (fileName: string, blob: string) => {
+		new Blob()
+		return this.store.put(
+			`/statics/my-second-brain/images/${fileName}.png`,
+			blob
+		)
+	}
+
   put = (fileName: string, content: string) => {
     return this.store.put(
       `/apis/my-second-brain/articles/${fileName}.md`,
