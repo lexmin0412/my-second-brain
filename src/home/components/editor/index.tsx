@@ -138,7 +138,9 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
 
   const handleChange = (newText: string) => {
     setContent(newText);
-    onContentUpdate();
+		if (newText !== initialContent) {
+			onContentUpdate();
+    }
   };
 
   /**
