@@ -20,6 +20,8 @@ import SettingModal, {
 } from "./components/setting-modal";
 import {useLocalStorageState} from "@/hooks/use-local-storage-state";
 import { EditorRef } from "./components/editor/types";
+import { defineCustomElements, LexminFooter } from '@lexmin0412/wc-react'
+defineCustomElements()
 
 const isOnMobile = isMobile();
 
@@ -427,17 +429,7 @@ export default function Home() {
         </div>
 
         {/* 底部 */}
-        <div className="flex items-center justify-center h-16 border-0 border-t border-solid border-t-[#eff0f5] text-center">
-          Created and maintained by{" "}
-          <a
-            href="https://github.com/lexmin0412"
-            className="ml-1"
-            target="_blank"
-          >
-            Lexmin0412
-          </a>
-          .
-        </div>
+				<LexminFooter />
 
         <FloatActions
           onAddFile={handleAddBtnClick}

@@ -15,6 +15,7 @@
     "@bytemd/plugin-highlight": "^1.21.0",
     "@bytemd/plugin-medium-zoom": "^1.21.0",
     "@bytemd/react": "^1.21.0",
+    "@lexmin0412/wc-react": "^0.0.9",
     "ahooks": "^3.7.8",
     "ali-oss": "^6.18.1",
     "antd": "^5.10.3",
