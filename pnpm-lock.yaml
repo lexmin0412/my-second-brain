@@ -14,6 +14,9 @@ dependencies:
   '@bytemd/plugin-highlight':
     specifier: ^1.21.0
     version: 1.21.0(bytemd@1.21.0)
+  '@bytemd/plugin-medium-zoom':
+    specifier: ^1.21.0
+    version: 1.21.0(bytemd@1.21.0)
   '@bytemd/react':
     specifier: ^1.21.0
     version: 1.21.0(react@18.2.0)
@@ -1360,6 +1363,15 @@ packages:
     dependencies:
       bytemd: 1.21.0
       highlight.js: 11.9.0
+    dev: false
+
+  /@bytemd/plugin-medium-zoom@1.21.0(bytemd@1.21.0):
+    resolution: {integrity: sha512-7x8iuw3eKfYyjDIcDa5EIa399db6SEk9Y2ntaZoJvJAf02ASXOZHwBht9PYredoPEjXgZS6awJ5Adr/fM/QJ4A==}
+    peerDependencies:
+      bytemd: ^1.5.0
+    dependencies:
+      bytemd: 1.21.0
+      medium-zoom: 1.1.0
     dev: false
 
   /@bytemd/react@1.21.0(react@18.2.0):
@@ -4054,6 +4066,10 @@ packages:
     resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
     dependencies:
       '@types/mdast': 4.0.2
+    dev: false
+
+  /medium-zoom@1.1.0:
+    resolution: {integrity: sha512-ewyDsp7k4InCUp3jRmwHBRFGyjBimKps/AJLjRSox+2q/2H4p/PNpQf+pwONWlJiOudkBXtbdmVbFjqyybfTmQ==}
     dev: false
 
   /merge-descriptors@1.0.1:

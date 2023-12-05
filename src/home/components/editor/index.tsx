@@ -21,14 +21,15 @@ import {pastImage} from "@/utils/clipboard";
 import {createRandomId} from "@/utils/id";
 import gfm from "@bytemd/plugin-gfm";
 import codeHighlight from "@bytemd/plugin-highlight";
+import mediumZoom from "@bytemd/plugin-medium-zoom";
 import {Editor as ByteMDEditor} from "@bytemd/react";
 import "bytemd/dist/index.css";
 import "./editor.less";
 
 const plugins = [
   gfm(),
-  codeHighlight()
-  // Add more plugins here
+  codeHighlight(),
+	mediumZoom(),
 ];
 
 interface EditorProps {
