@@ -61,6 +61,7 @@ export default function Home() {
       setEditorLoading(false);
       setEditorInitialContent(result?.content.toString());
       setSelectedSidebarItem(item);
+			setMenuSidebarOpen(false)
     } catch (error) {
       console.log("get file error", error);
       message.error("内容加载失败");
