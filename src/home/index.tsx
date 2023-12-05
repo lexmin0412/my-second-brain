@@ -1,6 +1,6 @@
 import {useOssClient} from "@/hooks";
 import {Button, message, Empty, Drawer, Modal} from "antd";
-import {GithubOutlined} from "@ant-design/icons";
+import { CarryOutOutlined, GithubOutlined, ReadOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
@@ -327,7 +327,7 @@ export default function Home() {
           </div>
           {/* 右侧图标 */}
           <div className="flex items-center">
-            <a
+            {/* <a
               href="https://r.xjq.icu/"
               className="font-semibold text-slate-800 flex items-center justify-center"
               target="_blank"
@@ -337,6 +337,28 @@ export default function Home() {
                 style={{
                   width: "32px",
                   height: "32px",
+                }}
+              />
+            </a> */}
+            <a
+              href="https://lexmin0412.github.io/storybook"
+              className="font-semibold text-slate-800 flex items-center justify-center ml-4"
+              target="_blank"
+            >
+              <ReadOutlined
+                style={{
+                  fontSize: "28px",
+                }}
+              />
+            </a>
+            <a
+              href="https://lexmin0412.github.io/todo"
+              className="font-semibold text-slate-800 flex items-center justify-center ml-4"
+              target="_blank"
+            >
+              <CarryOutOutlined
+                style={{
+                  fontSize: "28px",
                 }}
               />
             </a>
