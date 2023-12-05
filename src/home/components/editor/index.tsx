@@ -189,7 +189,7 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
     <Spin spinning={loading} className="tsb-spin">
       <div className="flex w-full h-full box-border relative">
         {/* 编辑区域 */}
-        {!isOnMobile && editorVisible ? (
+        {isOnMobile || editorVisible ? (
           <div className="editor-wrapper w-full h-full">
             <ByteMDEditor
               value={content}

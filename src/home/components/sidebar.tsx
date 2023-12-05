@@ -113,7 +113,7 @@ export default function Sidebar(props: SidebarProps) {
       <>
         <div
           key={item.id}
-          className={`h-10 flex items-center leading-10 m-2 pr-4 hover:bg-theme hover:text-white cursor-pointer rounded ${
+          className={`h-10 flex items-center leading-10 m-2 pr-4 text-[#222] hover:bg-theme hover:text-white cursor-pointer rounded ${
             item.id === selectedSidebarItem?.id ? "bg-[#4688ff] text-white" : ""
           } ${className}`}
         >
