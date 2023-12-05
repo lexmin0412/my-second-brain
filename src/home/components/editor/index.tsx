@@ -50,7 +50,7 @@ interface EditorProps {
   /**
    * 内容更新，用户触发编辑器修改时调用，用于判断本地文章是否有更改
    */
-  onContentUpdate: () => void;
+  onContentUpdate: (isNew: boolean) => void;
 }
 
 const isOnMobile = isMobile();
@@ -139,7 +139,7 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
   const handleChange = (newText: string) => {
     setContent(newText);
 		if (newText !== initialContent) {
-			onContentUpdate();
+			onContentUpdate(true);
     }
   };
 
@@ -150,6 +150,7 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
     await ossClient?.put(values.fileName, content);
     console.log("发布完成");
     message.success("发布成功");
+		onContentUpdate(false)
     setPublishConfirmModalOpen(false);
     onPublishSuccess();
   };

@@ -411,7 +411,9 @@ export default function Home() {
                 loading={editorLoading}
                 initialContent={editorInitialContent}
                 onPublishSuccess={handlePublishSuccess}
-                onContentUpdate={() => setContentUnPublished(true)}
+                onContentUpdate={(isNew: boolean) =>
+                  setContentUnPublished(isNew)
+                }
               />
             ) : (
               <Empty
@@ -429,7 +431,7 @@ export default function Home() {
         </div>
 
         {/* 底部 */}
-				<LexminFooter />
+        <LexminFooter />
 
         <FloatActions
           onAddFile={handleAddBtnClick}
