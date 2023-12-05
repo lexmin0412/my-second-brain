@@ -312,7 +312,7 @@ export default function Home() {
         selectedSidebarItem,
       }}
     >
-      <div className="home-page-container flex flex-col h-screen overflow-hidden">
+      <div className="home-page-container flex flex-col h-screen overflow-hidden text-[#222]">
         {/* 头部 */}
         <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6">
           {/* 左侧logo */}

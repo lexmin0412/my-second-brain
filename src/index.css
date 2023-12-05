@@ -18,7 +18,10 @@ html, body, div, p, img, button, textarea, input {
 	outline: none;
 	border: 0;
 	text-decoration: none;
-	color: var(--color-default);
+}
+
+html, body {
+	color: #fff;
 }
 
 a {

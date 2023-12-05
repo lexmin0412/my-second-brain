@@ -1,4 +1,9 @@
-import {ChangeEvent, forwardRef, useContext, useImperativeHandle, useState} from "react";
+import {
+  forwardRef,
+  useContext,
+  useImperativeHandle,
+  useState,
+} from "react";
 import {message, Modal, Spin} from "antd";
 import Markdown from "react-markdown";
 import reactGFM from "remark-gfm";
@@ -11,9 +16,18 @@ import {isMobile} from "@/utils";
 import {ShortCutAction, ShortCutMap} from "@/types";
 import {useStorageContent} from "@/hooks/use-storage-content";
 import CompareModal from "../compare-modal";
-import { EditorRef } from "./types";
-import { pastImage } from "@/utils/clipboard";
-import { createRandomId } from "@/utils/id";
+import {EditorRef} from "./types";
+import {pastImage} from "@/utils/clipboard";
+import {createRandomId} from "@/utils/id";
+import gfm from "@bytemd/plugin-gfm";
+import {Editor as ByteMDEditor} from "@bytemd/react";
+import "bytemd/dist/index.css";
+import "./editor.less";
+
+const plugins = [
+  gfm(),
+  // Add more plugins here
+];
 
 interface EditorProps {
   /**
@@ -30,10 +44,10 @@ interface EditorProps {
   onPublishSuccess: () => void;
   editorVisible: boolean;
   previewVisible: boolean;
-	/**
-	 * 内容更新，用户触发编辑器修改时调用，用于判断本地文章是否有更改
-	 */
-  onContentUpdate: () => void
+  /**
+   * 内容更新，用户触发编辑器修改时调用，用于判断本地文章是否有更改
+   */
+  onContentUpdate: () => void;
 }
 
 const isOnMobile = isMobile();
@@ -62,8 +76,8 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
    * 通过快捷键插入内容
    * TODO 在光标位置插入
    */
-  const updateContent = async(action: ShortCutAction) => {
-		console.log('action', action)
+  const updateContent = async (action: ShortCutAction) => {
+    console.log("action", action);
     switch (action) {
       case "bold":
         setContent(`${content}****`);
@@ -74,17 +88,18 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
       case "link":
         setContent(`${content}[]()`);
         break;
-      case "image":
-				const result = await pastImage()
-				const randomName = createRandomId()
-				const uploadRes = await ossClient?.uploadImage(
+      case "image": {
+        const result = await pastImage();
+        const randomName = createRandomId();
+        const uploadRes = await ossClient?.uploadImage(
           randomName,
           result as string
         );
-				if (uploadRes?.url) {
-					setContent(`${content}![image](${uploadRes.url})`);
+        if (uploadRes?.url) {
+          setContent(`${content}![image](${uploadRes.url})`);
         }
         break;
+      }
       case "code":
         setContent(`${content}\n\`\`\`\n\n\`\`\``);
         break;
@@ -118,9 +133,9 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
     }
   );
 
-  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
-		onContentUpdate()
+  const handleChange = (newText: string) => {
+    setContent(newText);
+    onContentUpdate();
   };
 
   /**
@@ -128,7 +143,7 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
    */
   const handleDocUpdate = async (values: {fileName: string}) => {
     await ossClient?.put(values.fileName, content);
-		console.log('发布完成')
+    console.log("发布完成");
     message.success("发布成功");
     setPublishConfirmModalOpen(false);
     onPublishSuccess();
@@ -160,10 +175,10 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
   useImperativeHandle(ref, () => {
     return {
       publish: () => {
-				return handleDocUpdate({
+        return handleDocUpdate({
           fileName: selectedSidebarItem?.fullTitle as string,
         });
-			},
+      },
     };
   });
 
@@ -172,27 +187,32 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
       <div className="flex w-full h-full box-border relative">
         {/* 编辑区域 */}
         {!isOnMobile && editorVisible ? (
-          <textarea
-            value={content}
-            placeholder="请输入内容开始编辑"
-            className="flex-1 border-0 w-full h-full block outline-none border-r border-solid border-r-[#eff0f5] resize-none p-4 box-border text-base"
-            onChange={handleChange}
-          />
+          <div className="editor-wrapper w-full h-full">
+            <ByteMDEditor
+              value={content}
+              plugins={plugins}
+              onChange={handleChange}
+            />
+          </div>
         ) : null}
-        {/* 预览区域 */}
-        {previewVisible ? (
-          <Markdown
-            className="flex-1 p-4 overflow-auto markdown-body"
-            remarkPlugins={remarkPlugins}
-            rehypePlugins={rehypePlugins}
-          >
-            {content}
-          </Markdown>
-        ) : null}
+
+        {/* 预览区域 暂时先使用 ByteMD 自带的预览 */}
+        {
+          // eslint-disable-next-line no-constant-condition
+          previewVisible && false ? (
+            <Markdown
+              className="flex-1 p-4 overflow-auto markdown-body"
+              remarkPlugins={remarkPlugins}
+              rehypePlugins={rehypePlugins}
+            >
+              {content}
+            </Markdown>
+          ) : null
+        }
 
         {/* 发布按钮 */}
         {!isOnMobile ? (
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-10 right-4">
             <button
               className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"
               onClick={handlePublishBtnClick}
@@ -220,4 +240,4 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
   );
 };
 
-export default forwardRef(Editor)
+export default forwardRef(Editor);

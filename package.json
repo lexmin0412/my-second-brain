@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
+    "@bytemd/plugin-gfm": "^1.21.0",
+    "@bytemd/react": "^1.21.0",
     "ahooks": "^3.7.8",
     "ali-oss": "^6.18.1",
     "antd": "^5.10.3",
+    "bytemd": "^1.21.0",
     "dayjs": "^1.11.10",
     "localforage": "^1.10.0",
     "nanoid": "^5.0.3",
