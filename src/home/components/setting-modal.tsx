@@ -80,7 +80,6 @@ export default function SettingModal(props: SettingModalProps) {
           <Checkbox.Group>
             <Checkbox value="sidebar">侧边栏</Checkbox>
             <Checkbox value="editor">编辑器</Checkbox>
-            <Checkbox value="preview">预览</Checkbox>
           </Checkbox.Group>
         </Form.Item>
       </Form>
