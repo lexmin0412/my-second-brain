@@ -25,7 +25,7 @@ class OssClient {
     return this.store.list(
       {
 				prefix: `apis/my-second-brain/articles${customPrefix||''}`,
-        "max-keys": 100,
+        "max-keys": 1000,
       },
       {}
     );
