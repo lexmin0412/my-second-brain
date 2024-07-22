@@ -2,6 +2,10 @@ import OSS from "ali-oss";
 import { getNameWithoutSuffix, replaceName } from ".";
 
 export interface OssClientInitProps {
+	/**
+	 * STS 方式需要这个参数，即阿里云 SDK 返回的 SecurityToken 字段
+	 */
+	securityToken?: string
   region: string;
   accessKeyId: string;
   accessKeySecret: string;
@@ -11,6 +15,7 @@ export interface OssClientInitProps {
 class OssClient {
   constructor(props: OssClientInitProps) {
     const store = new OSS({
+			stsToken: props.securityToken,
       region: props.region,
       accessKeyId: props.accessKeyId,
       accessKeySecret: props.accessKeySecret,
