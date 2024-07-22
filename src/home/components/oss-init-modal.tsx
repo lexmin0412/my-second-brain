@@ -1,5 +1,5 @@
-import { OssClientInitProps } from "@/utils";
-import {Modal, Form, Select, Input} from "antd";
+import {OssClientInitProps} from "@/utils";
+import {Modal, Form, Select, Input, message} from "antd";
 
 interface OSSInitModalProps {
   open: boolean;
@@ -9,16 +9,33 @@ interface OSSInitModalProps {
 
 export default function OSSInitModal(props: OSSInitModalProps) {
   const {open, onCancel, onOk} = props;
-	const [form] = Form.useForm()
+  const [form] = Form.useForm();
 
-	const handleOk = async() => {
-		await form.validateFields()
-		onOk(form.getFieldsValue())
-	}
+  const handleOk = async () => {
+    await form.validateFields();
+    const values = form.getFieldsValue();
+    try {
+      const res = await fetch("https://auth.cellerchan.top/guard/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      }).then((res) => res.json());
+			if (res?.code === 0) {
+				return onOk(res.data);
+			} else {
+				message.error(res?.message);
+			}
+    } catch (error) {
+			message.error("登录失败")
+			console.error("登录失败", error);
+    }
+  };
 
   return (
     <Modal
-      title="初始化配置"
+      title="登录"
       open={open}
       onCancel={onCancel}
       onOk={handleOk}
@@ -30,76 +47,30 @@ export default function OSSInitModal(props: OSSInitModalProps) {
     >
       <Form form={form}>
         <Form.Item
-          name="region"
-          label="地域"
+          name="userName"
+          label="用户"
           required
           rules={[
             {
               required: true,
-              message: "地域不能为空",
+              message: "用户名不能为空",
             },
           ]}
         >
-          <Select
-            placeholder="请选择地域"
-            options={[
-              {
-                label: "杭州",
-                value: "oss-cn-hangzhou",
-              },
-              {
-                label: "上海",
-                value: "oss-cn-shanghai",
-              },
-              {
-                label: "深圳",
-                value: "oss-cn-shenzhen",
-              },
-              {
-                label: "北京",
-                value: "oss-cn-beijing",
-              },
-            ]}
-          />
+          <Input type="text" placeholder="请输入用户名" />
         </Form.Item>
         <Form.Item
-          name="bucket"
-          label="Bucket"
+          name="password"
+          label="密码"
           required
           rules={[
             {
               required: true,
-              message: "Bucket 不能为空",
+              message: "密码不能为空",
             },
           ]}
         >
-          <Input type="text" placeholder="请输入 Bucket 名" />
-        </Form.Item>
-        <Form.Item
-          name="accessKeyId"
-          label="AccesssKeyId"
-          required
-          rules={[
-            {
-              required: true,
-              message: "AccesssKeyId 不能为空",
-            },
-          ]}
-        >
-          <Input type="text" placeholder="请输入 AccesssKeyId" />
-        </Form.Item>
-        <Form.Item
-          name="accessKeySecret"
-          label="AccessKeySecret"
-          required
-          rules={[
-            {
-              required: true,
-              message: "AccessKeySecret 不能为空",
-            },
-          ]}
-        >
-          <Input type="text" placeholder="请输入 AccessKeySecret" />
+          <Input type="text" placeholder="请输入密码" />
         </Form.Item>
       </Form>
     </Modal>
