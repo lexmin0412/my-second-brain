@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "rsbuild dev",
     "build": "rsbuild build",
+		"preview": "rsbuild preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {

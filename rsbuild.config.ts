@@ -1,6 +1,7 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from '@rsbuild/plugin-react'
 import { pluginLess } from '@rsbuild/plugin-less'
+import tailwindcss from 'tailwindcss'
 
 export default defineConfig({
 	source: {
@@ -10,6 +11,12 @@ export default defineConfig({
 	},
 	server: {
 		port: 5173
+	},
+	tools: {
+		postcss: (_config, { addPlugins }) => {
+			// 批量添加插件
+			addPlugins(tailwindcss);
+		},
 	},
 	plugins: [
 		pluginReact(),
