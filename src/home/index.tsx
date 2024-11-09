@@ -54,7 +54,7 @@ export default function Home() {
 
 	const toggleDoc = async (fileName: string, item: SidebarItem) => {
     // 修改 history path
-    history.pushState(null, "", `/my-second-brain/?fileName=${item.name}`);
+    history.pushState(null, "", `/?fileName=${item.name}`);
 
     try {
       const result = await ossClient?.get(fileName);
