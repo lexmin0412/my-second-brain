@@ -109,6 +109,7 @@ export default function Sidebar(props: SidebarProps) {
       ? `${parentItem.title}/${item.title}`
       : item.title;
     const isFolderOpen = openFolderKeys.includes(item.id);
+		console.log("itemitem", item);
     return (
       <>
         <div
@@ -163,13 +164,13 @@ export default function Sidebar(props: SidebarProps) {
     );
   };
 
+	console.log("itemsitems", items);
+
   return (
     <div className="flex-1 overflow-auto">
       {items.map((item: SidebarItem) => {
         return (
-          <Spin spinning={loading}>
             <SidebarItemComponent item={item} className="pl-2" />
-          </Spin>
         );
       })}
 

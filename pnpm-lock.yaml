@@ -44,6 +44,9 @@ dependencies:
   nanoid:
     specifier: ^5.0.3
     version: 5.0.3
+  pure-react-router:
+    specifier: ^0.0.3
+    version: 0.0.3(react@18.2.0)
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -1862,6 +1865,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
     requiresBuild: true
     dev: true
     optional: true
@@ -1871,6 +1875,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
     requiresBuild: true
     dev: true
     optional: true
@@ -1880,6 +1885,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
     requiresBuild: true
     dev: true
     optional: true
@@ -1889,6 +1895,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
     requiresBuild: true
     dev: true
     optional: true
@@ -4941,6 +4948,14 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
     dev: true
+
+  /pure-react-router@0.0.3(react@18.2.0):
+    resolution: {integrity: sha512-irvE8blVGRfmR/VDlpn/W0aaSDh7dNKQPavYN7COPrqz5yMF8QunupdL2480ILWBvG9hBLYw99GtcjxXrSMzJw==}
+    peerDependencies:
+      react: ^18.0.0
+    dependencies:
+      react: 18.2.0
+    dev: false
 
   /qrcode.react@3.1.0(react@18.2.0):
     resolution: {integrity: sha512-oyF+Urr3oAMUG/OiOuONL3HXM+53wvuH3mtIWQrYmsXoAq0DkvZp2RYUWFSMFtbdOpuS++9v+WAkzNVkMlNW6Q==}

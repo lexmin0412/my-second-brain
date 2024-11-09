@@ -1,54 +1,110 @@
-import AddFileModal, { AddFileModalOnOkValues } from "@/doc/components/add-file-modal";
-import OSSInitModal from "@/doc/components/oss-init-modal";
-import Sidebar, { SidebarItem } from "@/doc/components/sidebar";
-import { useOssClient } from "@/hooks";
-import { GlobalContext } from "@/hooks/context";
-import { isMobile, OssClientInitProps } from "@/utils";
-import { CarryOutOutlined, GithubOutlined, ReadOutlined } from "@ant-design/icons";
-import { LexminFooter } from "@lexmin0412/wc-react";
-import { useRequest } from "ahooks";
-import { message } from "antd";
+import {useOssClient} from "@/hooks";
+import {Button, message, Empty, Drawer, Modal} from "antd";
+import { CarryOutOutlined, GithubOutlined, ReadOutlined} from "@ant-design/icons";
+import {useRequest} from "ahooks";
 import dayjs from "dayjs";
-import { useState, useEffect } from "react";
+import {GlobalContext} from "@/hooks/context";
+import {type OssClientInitProps, isMobile} from "@/utils";
+import {useEffect, useRef, useState} from "react";
+import AddFileModal, {
+  AddFileModalOnOkValues,
+} from "./components/add-file-modal";
+import Editor from "./components/editor";
+import OSSInitModal from "./components/oss-init-modal";
+import Sidebar, {SidebarItem} from "./components/sidebar";
+import "./index.less";
+import FloatActions from "./components/float-actions";
+import SettingModal, {
+  LayoutVisibleConfig,
+  SettingModalOnOkValues,
+} from "./components/setting-modal";
+import {useLocalStorageState} from "@/hooks/use-local-storage-state";
+import { EditorRef } from "./components/editor/types";
+import { defineCustomElements, LexminFooter } from '@lexmin0412/wc-react'
 import { useHistory } from 'pure-react-router'
+defineCustomElements()
 
 const isOnMobile = isMobile();
 
 export default function Home() {
-	const history = useHistory()
+	const history  = useHistory()
   const currentFileName = window.location.search?.slice(10);
+  const [editorInitialContent, setEditorInitialContent] = useState("");
   const {ossClient, ossInitModalOpen, initOSSClient, setOssInitModalOpen} =
     useOssClient();
   const [sidebarItems, setSidebarItems] = useState<SidebarItem[]>([]);
   const [selectedSidebarItem, setSelectedSidebarItem] = useState<SidebarItem>();
   const [addFileModalOpen, setAddFileModalOpen] = useState(false);
+  const [editorLoading, setEditorLoading] = useState(false);
+  const [settingModalOpen, setSettingModalOpen] = useState(false);
+  const [menuSidebarOpen, setMenuSidebarOpen] = useState(false);
+  const [layoutVisibleConfig, setLayoutVisibleConfig] =
+    useLocalStorageState<LayoutVisibleConfig>("msb-visible-setting", {
+      // 初始化默认值以缓存优先
+      sidebar: true,
+      editor: true,
+      preview: true,
+    });
+  const editorRef = useRef<EditorRef|null>(null);
+  // 当前文章是否在本地有更改未发布
+  const [contentUnPublished, setContentUnPublished] = useState(false);
 
   const handleOssInitModalConfirm = (values: OssClientInitProps) => {
     initOSSClient(values);
     setOssInitModalOpen(false);
   };
 
-  const toggleDoc = async (fileName: string, item: SidebarItem) => {
+	const toggleDoc = async (fileName: string, item: SidebarItem) => {
     // 修改 history path
-    history.pushState(null, "", `/?fileName=${item.name}`);
+    history.push(`/doc?fileName=${item.name}`);
 
     try {
       const result = await ossClient?.get(fileName);
-      // setEditorLoading(false);
-      // setEditorInitialContent(result?.content.toString());
+      setEditorLoading(false);
+      setEditorInitialContent(result?.content.toString());
       setSelectedSidebarItem(item);
-      // setMenuSidebarOpen(false);
+			setMenuSidebarOpen(false)
     } catch (error) {
       console.log("get file error", error);
       message.error("内容加载失败");
     }
   };
 
-  useEffect(() => {
-    if (ossClient) {
-      refreshSidebarItems();
-    }
-  }, [ossClient]);
+  /**
+   * 切换 sidebar
+   * @param fullTitle 完整标题，如果是嵌套接口，则 fullTitle 为 parent/title
+   * @param item 选中的item
+   */
+  const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
+    setEditorLoading(true);
+
+		console.log("item.name", item.name, contentUnPublished);
+    if (contentUnPublished) {
+			console.log('即将出发 Modal Confirm')
+      Modal.confirm({
+        maskClosable: false,
+        closable: false,
+        title: "当前文档有更改未发布，是否立即发布",
+        content: "未发布的内容将仅缓存在本地，存在数据丢失风险",
+        okText: "发布并继续当前操作",
+        cancelText: "忽略并继续当前操作",
+        onOk: async() => {
+					console.log('开始发布')
+          await editorRef.current?.publish();
+					console.log('结束发布')
+          toggleDoc(fullTitle, item);
+					setContentUnPublished(false)
+					return Promise.resolve()
+        },
+        onCancel: () => {
+          toggleDoc(fullTitle, item);
+					setContentUnPublished(false);
+        },
+      });
+    } else {
+			toggleDoc(fullTitle, item);
+		}
+  };
 
   const {runAsync: refreshSidebarItems, loading: sidebarLoading} = useRequest(
     () => {
@@ -152,37 +208,19 @@ export default function Home() {
       }) as Promise<SidebarItem[]>;
     }
   );
-  const {runAsync: handleFileRename} = useRequest(
-    (newFileName: string, item: SidebarItem) => {
-      if (item.isFolder) {
-        return ossClient?.renameFolder(
-          item.title,
-          newFileName
-        ) as Promise<unknown>;
-      }
-      let newFullFileName = "";
-      if (item.title === item.fullTitle) {
-        newFullFileName = newFileName;
-      } else {
-        newFullFileName = `${item.fullTitle.slice(
-          0,
-          item.fullTitle.indexOf(item.title) - 1
-        )}/${newFileName}`;
-      }
-      return ossClient?.rename(
-        item.fullTitle,
-        newFullFileName.trim()
-      ) as Promise<unknown>;
-    },
-    {
-      manual: true,
-      onSuccess: refreshSidebarItems,
+
+  useEffect(() => {
+    if (ossClient) {
+      refreshSidebarItems();
     }
-  );
-  const folderOptions = sidebarItems.filter((item) => item.isFolder);
+  }, [ossClient]);
 
   const handlePublishSuccess = () => {
     refreshSidebarItems();
+  };
+
+  const handleAddBtnClick = () => {
+    setAddFileModalOpen(true);
   };
 
   const handleAddFileModalOk = async (values: AddFileModalOnOkValues) => {
@@ -221,15 +259,39 @@ export default function Home() {
       );
     }
   };
-  /**
-   * 切换 sidebar
-   * @param fullTitle 完整标题，如果是嵌套接口，则 fullTitle 为 parent/title
-   * @param item 选中的item
-   */
-  const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
-    // toggleDoc(fullTitle, item);
-		history.push(`/doc?fileName=${item.name}`);
+
+  const handleSettingModalConfirm = (values: SettingModalOnOkValues) => {
+    setSettingModalOpen(false);
+    setLayoutVisibleConfig(values.visible);
   };
+
+  const {runAsync: handleFileRename} = useRequest(
+    (newFileName: string, item: SidebarItem) => {
+      if (item.isFolder) {
+        return ossClient?.renameFolder(
+          item.title,
+          newFileName
+        ) as Promise<unknown>;
+      }
+      let newFullFileName = "";
+      if (item.title === item.fullTitle) {
+        newFullFileName = newFileName;
+      } else {
+        newFullFileName = `${item.fullTitle.slice(
+          0,
+          item.fullTitle.indexOf(item.title) - 1
+        )}/${newFileName}`;
+      }
+      return ossClient?.rename(
+        item.fullTitle,
+        newFullFileName.trim()
+      ) as Promise<unknown>;
+    },
+    {
+      manual: true,
+      onSuccess: refreshSidebarItems,
+    }
+  );
 
   const {runAsync: handleFileDelete} = useRequest(
     (item: SidebarItem) => {
@@ -246,7 +308,7 @@ export default function Home() {
     }
   );
 
-	console.log("sidebarItems", sidebarItems);
+  const folderOptions = sidebarItems.filter((item) => item.isFolder);
 
   return (
     <GlobalContext.Provider
@@ -259,12 +321,14 @@ export default function Home() {
         {/* 头部 */}
         <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6">
           {/* 左侧logo */}
-          <div className="flex items-center">
+          <div className="flex items-center cursor-pointer"
+						onClick={() => {history.push('/home')}}
+					>
             <img
               className="block w-8 h-8 rounded-2xl"
               src="https://lexmin.oss-cn-hangzhou.aliyuncs.com/statics/common/24385370.jpeg"
             />
-            <div className="cursor-pointer font-semibold ml-2">
+            <div className="font-semibold ml-2">
               My Second Brain
             </div>
           </div>
@@ -321,18 +385,64 @@ export default function Home() {
 
         {/* 主内容区 */}
         <div className="flex flex-1 overflow-hidden">
-          <Sidebar
-            showActionButtons={true}
-            loading={sidebarLoading}
-            items={sidebarItems}
-            onChange={handleSidebarChange}
-            onRename={handleFileRename}
-            onDelete={handleFileDelete}
-          />
+          {/* 侧边栏 */}
+          {!isOnMobile && layoutVisibleConfig.sidebar ? (
+            <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full overflow-auto resize-x">
+              {/* <div
+                className="h-10 leading-10 text-center cursor-pointer hover:bg-[#4688ff] hover:text-white"
+                onClick={handleAddBtnClick}
+              >
+                <PlusOutlined /> 新建
+              </div> */}
+
+              <Sidebar
+                showActionButtons={true}
+                loading={sidebarLoading}
+                items={sidebarItems}
+                onChange={handleSidebarChange}
+                onRename={handleFileRename}
+                onDelete={handleFileDelete}
+              />
+            </div>
+          ) : null}
+
+          {/* 内容区 只有选中文章时才展示 */}
+          <div className="flex-1 h-full box-border overflow-hidden">
+            {selectedSidebarItem ? (
+              <Editor
+                ref={editorRef}
+                editorVisible={layoutVisibleConfig.editor}
+                previewVisible={layoutVisibleConfig.preview}
+                loading={editorLoading}
+                initialContent={editorInitialContent}
+                onPublishSuccess={handlePublishSuccess}
+                onContentUpdate={(isNew: boolean) =>
+                  setContentUnPublished(isNew)
+                }
+              />
+            ) : (
+              <Empty
+                description="新建一个文档，开始知识之旅吧～"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                }}
+              />
+            )}
+          </div>
         </div>
 
         {/* 底部 */}
         <LexminFooter />
+
+        <FloatActions
+          onAddFile={handleAddBtnClick}
+          onSettingBtnClick={() => setSettingModalOpen(true)}
+          onMenuBtnClick={() => setMenuSidebarOpen(true)}
+        />
 
         <OSSInitModal
           open={ossInitModalOpen}
@@ -346,6 +456,49 @@ export default function Home() {
           onCancel={() => setAddFileModalOpen(false)}
           onOk={handleAddFileModalOk}
         />
+
+        <SettingModal
+          open={settingModalOpen}
+          initialValues={{
+            visible: layoutVisibleConfig,
+          }}
+          onCancel={() => setSettingModalOpen(false)}
+          onOk={handleSettingModalConfirm}
+        />
+
+        {/* 侧边栏菜单 */}
+        <Drawer
+          title="文档列表"
+          placement="right"
+          width={"80%"}
+          onClose={() => setMenuSidebarOpen(false)}
+          open={menuSidebarOpen}
+          closable={false}
+          styles={{
+            body: {
+              padding: "12px",
+            },
+          }}
+        >
+          <div className="h-full flex flex-col">
+            <Sidebar
+              showActionButtons={false}
+              loading={sidebarLoading}
+              items={sidebarItems}
+              onChange={toggleDoc}
+              onRename={handleFileRename}
+              onDelete={handleFileDelete}
+            />
+            <Button
+              size="large"
+              type="primary"
+              className="m-2"
+              onClick={() => setMenuSidebarOpen(false)}
+            >
+              关闭
+            </Button>
+          </div>
+        </Drawer>
       </div>
     </GlobalContext.Provider>
   );
