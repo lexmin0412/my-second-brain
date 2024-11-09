@@ -3,16 +3,14 @@ import OSSInitModal from "@/doc/components/oss-init-modal";
 import Sidebar, { SidebarItem } from "@/doc/components/sidebar";
 import { useOssClient } from "@/hooks";
 import { GlobalContext } from "@/hooks/context";
-import { isMobile, OssClientInitProps } from "@/utils";
-import { CarryOutOutlined, GithubOutlined, ReadOutlined } from "@ant-design/icons";
+import { OssClientInitProps } from "@/utils";
 import { LexminFooter } from "@lexmin0412/wc-react";
 import { useRequest } from "ahooks";
 import { message } from "antd";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { useHistory } from 'pure-react-router'
-
-const isOnMobile = isMobile();
+import LayoutHeader from "@/components/layout/header";
 
 export default function Home() {
 	const history = useHistory()
@@ -241,68 +239,6 @@ export default function Home() {
       }}
     >
       <div className="home-page-container flex flex-col h-screen overflow-hidden text-[#222]">
-        {/* 头部 */}
-        <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6">
-          {/* 左侧logo */}
-          <div className="flex items-center">
-            <img
-              className="block w-8 h-8 rounded-2xl"
-              src="https://lexmin.oss-cn-hangzhou.aliyuncs.com/statics/common/24385370.jpeg"
-            />
-            <div className="cursor-pointer font-semibold ml-2">
-              My Second Brain
-            </div>
-          </div>
-          {/* 右侧图标 */}
-          <div className="flex items-center">
-            {/* <a
-              href="https://r.xjq.icu/"
-              className="font-semibold text-slate-800 flex items-center justify-center"
-              target="_blank"
-            >
-              <img
-                src="https://image.xjq.icu/runcode/2023-10-07/assets/study.def7917b.ico"
-                style={{
-                  width: "32px",
-                  height: "32px",
-                }}
-              />
-            </a> */}
-            <a
-              href="https://lexmin0412.github.io/storybook"
-              className="font-semibold text-slate-800 flex items-center justify-center ml-4"
-              target="_blank"
-            >
-              <ReadOutlined
-                style={{
-                  fontSize: "28px",
-                }}
-              />
-            </a>
-            <a
-              href="https://lexmin0412.github.io/todo"
-              className="font-semibold text-slate-800 flex items-center justify-center ml-4"
-              target="_blank"
-            >
-              <CarryOutOutlined
-                style={{
-                  fontSize: "28px",
-                }}
-              />
-            </a>
-            <a
-              href="https://github.com/lexmin0412/my-second-brain"
-              className="font-semibold text-slate-800 flex items-center justify-center ml-4"
-              target="_blank"
-            >
-              <GithubOutlined
-                style={{
-                  fontSize: "28px",
-                }}
-              />
-            </a>
-          </div>
-        </div>
 
         {/* 主内容区 */}
         <div className="flex flex-1 overflow-hidden">

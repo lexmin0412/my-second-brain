@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import Home from './home';
 import Doc from "./doc";
+import Notes from "./notes";
 import './index.css'
 import {BrowserRouter} from "pure-react-router";
 
@@ -14,6 +15,10 @@ export const routeList = [
   {
     path: "/doc",
     component: Doc,
+  },
+  {
+    path: "/notes",
+    component: Notes,
   },
 ];
 
