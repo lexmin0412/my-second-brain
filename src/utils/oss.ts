@@ -36,6 +36,16 @@ class OssClient {
     );
   };
 
+	listNotes = (customPrefix?: string) => {
+		return this.store.list(
+			{
+				prefix: `apis/my-second-brain/notes${customPrefix || ''}`,
+				"max-keys": 1000,
+			},
+			{}
+		);
+	};
+
 	/**
 	 * 上传图片
 	 * @param fileName 文件名
@@ -58,6 +68,16 @@ class OssClient {
       new OSS.Buffer(content)
     );
   };
+
+	putNote = (fileName: string, content: string) => {
+		console.log('更新笔记')
+		return this.store.put(
+			`/apis/my-second-brain/notes/${fileName}.md`,
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			new OSS.Buffer(content)
+		);
+	};
 
   addFolder = (folderName: string) => {
     return this.store.put(
@@ -86,6 +106,10 @@ class OssClient {
     return this.store.get(`apis/my-second-brain/articles/${fileName}.md`);
   };
 
+	getNote = (fileName: string) => {
+		return this.store.get(`apis/my-second-brain/notes/${fileName}.md`);
+	};
+
   copy = (sourceFileName: string, targetFileName: string) => {
     return this.store.copy(
       `apis/my-second-brain/articles/${targetFileName}.md`,
@@ -96,6 +120,10 @@ class OssClient {
   delete = (fileName: string) => {
     return this.store.delete(`/apis/my-second-brain/articles/${fileName}.md`);
   };
+
+	deleteNote = (fileName: string) => {
+		return this.store.delete(`/apis/my-second-brain/notes/${fileName}.md`);
+	};
 
   rename = async (sourceFileName: string, targetFileName: string) => {
     await this.copy(sourceFileName, targetFileName);
