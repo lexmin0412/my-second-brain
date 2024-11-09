@@ -30,18 +30,7 @@ export default function Home() {
 
   const toggleDoc = async (fileName: string, item: SidebarItem) => {
     // 修改 history path
-    history.pushState(null, "", `/?fileName=${item.name}`);
-
-    try {
-      const result = await ossClient?.get(fileName);
-      // setEditorLoading(false);
-      // setEditorInitialContent(result?.content.toString());
-      setSelectedSidebarItem(item);
-      // setMenuSidebarOpen(false);
-    } catch (error) {
-      console.log("get file error", error);
-      message.error("内容加载失败");
-    }
+    history.push(`/doc?fileName=${item.name}`);
   };
 
   useEffect(() => {
@@ -145,9 +134,6 @@ export default function Home() {
             }
           }
         });
-        if (selectedItem) {
-          toggleDoc((selectedItem as SidebarItem).fullTitle, selectedItem);
-        }
         return newList;
       }) as Promise<SidebarItem[]>;
     }
@@ -227,8 +213,7 @@ export default function Home() {
    * @param item 选中的item
    */
   const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
-    // toggleDoc(fullTitle, item);
-		history.push(`/doc?fileName=${item.name}`);
+    toggleDoc(fullTitle, item);
   };
 
   const {runAsync: handleFileDelete} = useRequest(
