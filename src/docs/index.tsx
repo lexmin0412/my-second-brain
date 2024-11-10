@@ -1,6 +1,5 @@
 import {useOssClient} from "@/hooks";
 import {Button, message, Empty, Drawer, Modal} from "antd";
-import { CarryOutOutlined, GithubOutlined, ReadOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
@@ -78,9 +77,7 @@ export default function Home() {
   const handleSidebarChange = async (fullTitle: string, item: SidebarItem) => {
     setEditorLoading(true);
 
-		console.log("item.name", item.name, contentUnPublished);
     if (contentUnPublished) {
-			console.log('即将出发 Modal Confirm')
       Modal.confirm({
         maskClosable: false,
         closable: false,

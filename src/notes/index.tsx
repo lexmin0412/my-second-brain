@@ -61,14 +61,23 @@ export default function Notes() {
     }
   );
 
-  const saveNotes = () => {
-    ossClient?.putNote(Math.random().toString(), textValue).then(() => {
+	const resetInput = () => setTextValue('')
+
+	const {
+		runAsync: saveNotes,
+		loading: saveLoading
+	} = useRequest(()=>{
+		return ossClient?.putNote(Math.random().toString(), textValue)
+	}, {
+		manual: true,
+		onSuccess: () => {
       refreshSidebarItems();
-    });
-  };
+      resetInput();
+      message.success("保存成功");
+		}
+	})
 
   useEffect(() => {
-    console.log("ossClientossClient", ossClient);
     if (ossClient) {
       refreshSidebarItems();
     }
@@ -111,7 +120,7 @@ export default function Notes() {
             onChange={handleChange}
           />
           <div className="flex justify-end mt-3">
-            <Button type="primary" onClick={saveNotes}>
+            <Button type="primary" loading={saveLoading} onClick={saveNotes}>
               保存
             </Button>
           </div>
