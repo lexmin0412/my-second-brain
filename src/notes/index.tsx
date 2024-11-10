@@ -5,11 +5,15 @@ import {
   DeleteOutlined,
   EditOutlined,
   MoreOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import {
   Button,
+  Divider,
+  Drawer,
   Dropdown,
+  FloatButton,
   Input,
   message,
   Modal,
@@ -118,6 +122,14 @@ export default function Notes() {
     }
   );
 
+  const [inputDrawerOpen, setInputDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!inputDrawerOpen) {
+      setTextValue("");
+    }
+  }, [inputDrawerOpen]);
+
   return (
     <GlobalContext.Provider
       value={{
@@ -129,25 +141,27 @@ export default function Notes() {
           isMobile() ? "w-full px-3" : "w-1/2 mx-auto"
         } pt-6 box-border overflow-hidden flex flex-col h-full`}
       >
-        <div>
-          <Input.TextArea
-            value={textValue}
-            placeholder="现在的想法是..."
-            autoSize={{
-              minRows: 6,
-              maxRows: 10,
-            }}
-            onChange={handleChange}
-          />
-          <div className="flex justify-end mt-3">
-            <Button type="primary" loading={saveLoading} onClick={saveNotes}>
-              保存
-            </Button>
+        {!isMobile() && (
+          <div className="mb-6">
+            <Input.TextArea
+              value={textValue}
+              placeholder="现在的想法是..."
+              autoSize={{
+                minRows: 6,
+                maxRows: 10,
+              }}
+              onChange={handleChange}
+            />
+            <div className="flex justify-end mt-3">
+              <Button type="primary" loading={saveLoading} onClick={saveNotes}>
+                保存
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="mt-6 flex-1 overflow-auto">
-          {data?.map((item) => {
+        <div className="flex-1 overflow-auto">
+          {data?.map((item, index) => {
             const actions: any[] = [
               {
                 key: "edit",
@@ -173,27 +187,74 @@ export default function Notes() {
                         })
                       }
                     />
-										<span className="ml-2">删除</span>
+                    <span className="ml-2">删除</span>
                   </div>
                 ),
               },
             ];
             return (
-              <div key={item.name} className="mb-3 bg-[#f9f9f9] p-4 rounded-lg">
-                <div className="flex item-center">
-                  <div className="flex-1 overflow-hidden text-gray-500 text-sm">
-                    {item.lastModified}
+              <>
+                {index !== 0 ? <Divider /> : null}
+                <div key={item.name} className="mb-3 px-4 rounded-lg">
+                  <div className="flex item-center">
+                    <div className="flex-1 overflow-hidden text-gray-500 text-sm">
+                      {item.lastModified}
+                    </div>
+                    <Dropdown placement="bottomRight" menu={{items: actions}}>
+                      <MoreOutlined className="cursor-pointer text-lg" />
+                    </Dropdown>
                   </div>
-                  <Dropdown placement='bottomRight' menu={{items: actions}}>
-                    <MoreOutlined className="cursor-pointer text-lg" />
-                  </Dropdown>
+                  <div className="break-all mt-3 text-[#333]">
+                    {item.content}
+                  </div>
                 </div>
-                <div className="break-all mt-3 text-[#333]">{item.content}</div>
-              </div>
+              </>
             );
           })}
         </div>
       </div>
+
+      {isMobile() && (
+        <>
+          <FloatButton
+            shape="circle"
+            type="primary"
+            style={{insetInlineEnd: 30}}
+            icon={<PlusOutlined />}
+            onClick={() => setInputDrawerOpen(true)}
+          />
+
+          <Drawer
+            title="新增小记"
+            placement="bottom"
+            open={inputDrawerOpen}
+            height={340}
+            onClose={() => {
+              setInputDrawerOpen(false);
+            }}
+            extra={
+              <Button
+                disabled={!textValue}
+                type="primary"
+                loading={saveLoading}
+                onClick={async () => {
+                  await saveNotes();
+                  setInputDrawerOpen(false);
+                }}
+              >
+                保存
+              </Button>
+            }
+          >
+            <Input.TextArea
+              value={textValue}
+              placeholder="现在的想法是..."
+              rows={10}
+              onChange={handleChange}
+            />
+          </Drawer>
+        </>
+      )}
     </GlobalContext.Provider>
   );
 }
