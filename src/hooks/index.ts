@@ -1,5 +1,7 @@
 import { OssClientInitProps } from "@/utils";
 import OssClient from "@/utils/oss";
+import { message } from "antd";
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
 /**
@@ -41,7 +43,14 @@ export const useOssClient = () => {
 			setOssInitModalOpen(true);
 		} else {
 			const parsedConfig = JSON.parse(storageConfigs);
-			initOSSClient(parsedConfig)
+			// 校验过期时间
+			if (dayjs(parsedConfig.expiration).isBefore(dayjs())) {
+				// 过期则重新初始化
+				message.error("登录已过期，请重新登录");
+				setOssInitModalOpen(true);
+			} else {
+				initOSSClient(parsedConfig);
+			}
 		}
 	}, []);
 

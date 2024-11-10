@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import Home from './home';
-import Doc from "./doc";
+import Doc from "./docs";
 import Notes from "./notes";
 import './index.css'
 import {BrowserRouter} from "pure-react-router";
@@ -13,7 +13,7 @@ export const routeList = [
     component: Home,
   },
   {
-    path: "/doc",
+    path: "/docs",
     component: Doc,
   },
   {

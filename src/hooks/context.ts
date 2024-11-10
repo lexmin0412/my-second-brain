@@ -1,4 +1,4 @@
-import { SidebarItem } from "@/doc/components/sidebar";
+import { SidebarItem } from "@/docs/components/sidebar";
 import OssClient from "@/utils/oss";
 import React from "react";
 
