@@ -12,6 +12,9 @@ export default defineConfig({
 	server: {
 		port: 5173
 	},
+	html: {
+		template: "./index.html",
+	},
 	tools: {
 		postcss: (_config, { addPlugins }) => {
 			// 批量添加插件
