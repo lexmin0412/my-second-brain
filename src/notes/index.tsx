@@ -1,14 +1,20 @@
 import {useOssClient} from "@/hooks";
 import {GlobalContext} from "@/hooks/context";
-import { isMobile } from "@/utils";
+import {isMobile} from "@/utils";
 import {
   DeleteOutlined,
   EditOutlined,
-  EllipsisOutlined,
-  SettingOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
 import {useRequest} from "ahooks";
-import {Button, Card, Divider, Input, message, Popconfirm} from "antd";
+import {
+  Button,
+  Dropdown,
+  Input,
+  message,
+  Modal,
+} from "antd";
+import dayjs from "dayjs";
 import {useEffect, useState} from "react";
 
 export default function Notes() {
@@ -16,17 +22,23 @@ export default function Notes() {
     useOssClient();
 
   const {runAsync: batchGetNotes, data} = useRequest(
-    (names: string[]) => {
+    (
+      list: {
+        name: string;
+        lastModified: string;
+      }[]
+    ) => {
       const promises: Array<() => Promise<any>> = [];
-      console.log("names123", names);
+      console.log("names123", list);
       // return Promise.resolve()
-      names.forEach((name) => {
+      list.forEach((item) => {
         promises.push(() => {
-          return ossClient?.getNote(name).then((res) => {
+          return ossClient?.getNote(item.name).then((res) => {
             return {
-							name: name,
-							content: res.content.toString()
-						};
+              name: item.name,
+              lastModified: item.lastModified,
+              content: res.content.toString(),
+            };
           });
         });
       });
@@ -51,7 +63,12 @@ export default function Notes() {
                 "result111",
                 splitRes[splitRes.length - 1].split(".md")[0]
               );
-              return splitRes[splitRes.length - 1].split(".md")[0];
+              return {
+                name: splitRes[splitRes.length - 1].split(".md")[0],
+                lastModified: dayjs(item.lastModified).format(
+                  "YYYY-MM-DD HH:mm:ss"
+                ),
+              };
             })
         );
       }) as Promise<any[]>;
@@ -61,21 +78,21 @@ export default function Notes() {
     }
   );
 
-	const resetInput = () => setTextValue('')
+  const resetInput = () => setTextValue("");
 
-	const {
-		runAsync: saveNotes,
-		loading: saveLoading
-	} = useRequest(()=>{
-		return ossClient?.putNote(Math.random().toString(), textValue)
-	}, {
-		manual: true,
-		onSuccess: () => {
-      refreshSidebarItems();
-      resetInput();
-      message.success("保存成功");
-		}
-	})
+  const {runAsync: saveNotes, loading: saveLoading} = useRequest(
+    () => {
+      return ossClient?.putNote(Math.random().toString(), textValue);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        refreshSidebarItems();
+        resetInput();
+        message.success("保存成功");
+      },
+    }
+  );
 
   useEffect(() => {
     if (ossClient) {
@@ -88,15 +105,18 @@ export default function Notes() {
     setTextValue(e.target.value);
   };
 
-	const {runAsync: handleDelete} = useRequest((name) => {
-    return ossClient?.deleteNote(name);
-  }, {
-		manual: true,
-		onSuccess: () => {
-			message.success('删除成功')
-			refreshSidebarItems();
-		},
-	});
+  const {runAsync: handleDelete} = useRequest(
+    (name) => {
+      return ossClient?.deleteNote(name);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success("删除成功");
+        refreshSidebarItems();
+      },
+    }
+  );
 
   return (
     <GlobalContext.Provider
@@ -128,24 +148,48 @@ export default function Notes() {
 
         <div className="mt-6 flex-1 overflow-auto">
           {data?.map((item) => {
-            const actions: React.ReactNode[] = [
-              <EditOutlined key="edit" />,
-              <Popconfirm
-                title="确认删除吗？"
-                cancelText="取消"
-                okButtonProps={{
-                  danger: true,
-                  children: "删除",
-                }}
-                onConfirm={() => handleDelete(item.name)}
-              >
-                <DeleteOutlined key="delete" />
-              </Popconfirm>,
+            const actions: any[] = [
+              {
+                key: "edit",
+                label: (
+                  <div>
+                    <EditOutlined key="edit" />
+                    <span className="ml-2">编辑</span>
+                  </div>
+                ),
+              },
+              {
+                key: "delete",
+                danger: true,
+                label: (
+                  <div>
+                    <DeleteOutlined
+                      key="delete"
+                      onClick={() =>
+                        Modal.confirm({
+                          title: "提示",
+                          content: "删除后无法恢复",
+                          onOk: () => handleDelete(item.name),
+                        })
+                      }
+                    />
+										<span className="ml-2">删除</span>
+                  </div>
+                ),
+              },
             ];
             return (
-              <Card id={item.name} className="mb-3" actions={actions}>
-                <p>{item.content}</p>
-              </Card>
+              <div key={item.name} className="mb-3 bg-[#f9f9f9] p-4 rounded-lg">
+                <div className="flex item-center">
+                  <div className="flex-1 overflow-hidden text-gray-500 text-sm">
+                    {item.lastModified}
+                  </div>
+                  <Dropdown placement='bottomRight' menu={{items: actions}}>
+                    <MoreOutlined className="cursor-pointer text-lg" />
+                  </Dropdown>
+                </div>
+                <div className="break-all mt-3 text-[#333]">{item.content}</div>
+              </div>
             );
           })}
         </div>
