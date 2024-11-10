@@ -5,14 +5,13 @@ import OSSInitModal from "@/docs/components/oss-init-modal";
 import Sidebar, {SidebarItem} from "@/docs/components/sidebar";
 import {useOssClient} from "@/hooks";
 import {GlobalContext} from "@/hooks/context";
-import {OssClientInitProps} from "@/utils";
+import {isMobile, OssClientInitProps} from "@/utils";
 import {LexminFooter} from "@lexmin0412/wc-react";
 import {useRequest} from "ahooks";
 import {Button, Col, message, Row, Space} from "antd";
 import dayjs from "dayjs";
 import {useState, useEffect} from "react";
 import {useHistory, Link} from "pure-react-router";
-import LayoutHeader from "@/components/layout/header";
 
 const FeatureList = [
   {
@@ -251,9 +250,11 @@ export default function Home() {
   console.log("sidebarItems", sidebarItems);
 
   return (
-    <div className="overflow-hidden h-full">
+    <div className="overflow-hidden h-full ">
       <div
-        className="text-center w-3/5 mx-auto pt-10 box-border"
+        className={`${
+          isMobile() ? "w-full px-3" : "w-3/5 mx-auto"
+        } text-center pt-10 pb-4 box-border overflow-auto`}
         style={{
           height: "calc(100% - 64px)",
         }}
@@ -296,7 +297,7 @@ export default function Home() {
           {/* 🚀 */}
           {FeatureList.map((item) => {
             return (
-              <Col key={item.title} span={12}>
+              <Col key={item.title} span={isMobile() ? 24 : 12} className='mb-3'>
                 <Link
                   to={item.link}
                   className="bg-[#F9F9F9] mx-3 rounded-2xl p-4 cursor-pointer inline-block text-[#222]"

@@ -1,5 +1,6 @@
 import {useOssClient} from "@/hooks";
 import {GlobalContext} from "@/hooks/context";
+import { isMobile } from "@/utils";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -94,7 +95,11 @@ export default function Notes() {
         ossClient,
       }}
     >
-      <div className="w-1/2 mx-auto pt-6 overflow-hidden flex flex-col h-full">
+      <div
+        className={`${
+          isMobile() ? "w-full px-3" : "w-1/2 mx-auto"
+        } pt-6 box-border overflow-hidden flex flex-col h-full`}
+      >
         <div>
           <Input.TextArea
             value={textValue}
@@ -116,10 +121,15 @@ export default function Notes() {
           {data?.map((item) => {
             const actions: React.ReactNode[] = [
               <EditOutlined key="edit" />,
-              <Popconfirm title='确认删除吗？' cancelText='取消' okButtonProps={{
-								danger: true,
-								children: '删除'
-							}} onConfirm={()=>handleDelete(item.name)}>
+              <Popconfirm
+                title="确认删除吗？"
+                cancelText="取消"
+                okButtonProps={{
+                  danger: true,
+                  children: "删除",
+                }}
+                onConfirm={() => handleDelete(item.name)}
+              >
                 <DeleteOutlined key="delete" />
               </Popconfirm>,
             ];

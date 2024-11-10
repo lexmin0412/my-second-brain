@@ -1,3 +1,4 @@
+import { isMobile } from "@/utils";
 import {
   CarryOutOutlined,
   GithubOutlined,
@@ -26,7 +27,7 @@ export default function LayoutHeader() {
         <div className="font-semibold ml-2">My Second Brain</div>
       </div>
       <div className="flex items-center">
-        <Space size='large'>
+        <Space size="large">
           {[
             {
               key: "/docs",
@@ -38,9 +39,7 @@ export default function LayoutHeader() {
             },
           ].map((item) => {
             const tabClassName =
-              item.key === currentTab
-                ? "text-theme"
-                : "text-[#222]";
+              item.key === currentTab ? "text-theme" : "text-[#222]";
             return (
               <Link className={`${tabClassName} cursor-pointer`} to={item.key}>
                 {item.label}
@@ -50,41 +49,43 @@ export default function LayoutHeader() {
         </Space>
       </div>
       {/* 右侧图标 */}
-      <div className="flex items-center">
-        <a
-          href="https://lexmin0412.github.io/storybook"
-          className="font-semibold text-slate-800 flex items-center justify-center ml-4"
-          target="_blank"
-        >
-          <ReadOutlined
-            style={{
-              fontSize: "28px",
-            }}
-          />
-        </a>
-        <a
-          href="https://lexmin0412.github.io/todo"
-          className="font-semibold text-slate-800 flex items-center justify-center ml-4"
-          target="_blank"
-        >
-          <CarryOutOutlined
-            style={{
-              fontSize: "28px",
-            }}
-          />
-        </a>
-        <a
-          href="https://github.com/lexmin0412/my-second-brain"
-          className="font-semibold text-slate-800 flex items-center justify-center ml-4"
-          target="_blank"
-        >
-          <GithubOutlined
-            style={{
-              fontSize: "28px",
-            }}
-          />
-        </a>
-      </div>
+      {!isMobile() && (
+        <div className="flex items-center">
+          <a
+            href="https://lexmin0412.github.io/storybook"
+            className="font-semibold text-slate-800 flex items-center justify-center ml-4"
+            target="_blank"
+          >
+            <ReadOutlined
+              style={{
+                fontSize: "28px",
+              }}
+            />
+          </a>
+          <a
+            href="https://lexmin0412.github.io/todo"
+            className="font-semibold text-slate-800 flex items-center justify-center ml-4"
+            target="_blank"
+          >
+            <CarryOutOutlined
+              style={{
+                fontSize: "28px",
+              }}
+            />
+          </a>
+          <a
+            href="https://github.com/lexmin0412/my-second-brain"
+            className="font-semibold text-slate-800 flex items-center justify-center ml-4"
+            target="_blank"
+          >
+            <GithubOutlined
+              style={{
+                fontSize: "28px",
+              }}
+            />
+          </a>
+        </div>
+      )}
     </div>
   );
 }
