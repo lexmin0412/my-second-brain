@@ -8,7 +8,7 @@ import {Link, useHistory} from "pure-react-router";
 
 export default function LayoutHeader() {
   const history = useHistory();
-  const currentTab = window.location.pathname
+  const currentTab = history.location.pathname.split('?')[0];
 
   return (
     <div className=" h-16 flex items-center justify-between border-0 border-b border-solid border-b-[#eff0f5] px-6 w-full box-border bg-white">
