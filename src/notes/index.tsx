@@ -1,6 +1,7 @@
+import OSSInitModal from "@/docs/components/oss-init-modal";
 import {useOssClient} from "@/hooks";
 import {GlobalContext} from "@/hooks/context";
-import {isMobile} from "@/utils";
+import {isMobile, OssClientInitProps} from "@/utils";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -8,6 +9,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import {useRequest} from "ahooks";
+import OSS from "ali-oss";
 import {
   Button,
   Divider,
@@ -17,13 +19,16 @@ import {
   Input,
   message,
   Modal,
+  Space,
 } from "antd";
 import dayjs from "dayjs";
 import {useEffect, useState} from "react";
 
 export default function Notes() {
-  const {ossClient} = useOssClient();
+  const {ossClient, ossInitModalOpen, setOssInitModalOpen, initOSSClient} =
+    useOssClient();
   const [currentId, setCurrentId] = useState<string>();
+  const [createTextValue, setCreateTextValue] = useState("");
 
   const {runAsync: batchGetNotes, data} = useRequest(
     (
@@ -88,16 +93,22 @@ export default function Notes() {
     }
   );
 
-  const resetInput = () => setTextValue("");
+  const resetInput = () => {
+    setTextValue("");
+    setCreateTextValue("");
+  };
 
   const {runAsync: saveNotes, loading: saveLoading} = useRequest(
-    () => {
-      const filename = currentId || Math.random().toString();
-      return ossClient?.putNote(filename, textValue);
+    (textValue: string, filename: string) => {
+      return ossClient?.putNote(
+        filename,
+        textValue
+      ) as Promise<OSS.PutObjectResult>;
     },
     {
       manual: true,
       onSuccess: () => {
+        setCurrentId("");
         refreshSidebarItems();
         resetInput();
         message.success("保存成功");
@@ -114,6 +125,10 @@ export default function Notes() {
   const [textValue, setTextValue] = useState("");
   const handleChange = (e: any) => {
     setTextValue(e.target.value);
+  };
+
+  const handleCreateTextChange = (e: any) => {
+    setCreateTextValue(e.target.value);
   };
 
   const {runAsync: handleDelete} = useRequest(
@@ -138,6 +153,11 @@ export default function Notes() {
     }
   }, [inputDrawerOpen]);
 
+  const handleOssInitModalConfirm = (values: OssClientInitProps) => {
+    initOSSClient(values);
+    setOssInitModalOpen(false);
+  };
+
   return (
     <GlobalContext.Provider
       value={{
@@ -146,29 +166,35 @@ export default function Notes() {
     >
       <div
         className={`${
-          isMobile() ? "w-full px-3" : "w-1/2 mx-auto"
-        } pt-6 box-border overflow-hidden flex flex-col h-full`}
+          isMobile() ? "w-full px-3" : "w-1/2 mx-auto pt-6"
+        } box-border overflow-hidden flex flex-col h-full`}
       >
         {!isMobile() && (
           <div className="mb-6">
             <Input.TextArea
-              value={textValue}
+              value={createTextValue}
               placeholder="现在的想法是..."
               autoSize={{
-                minRows: 6,
-                maxRows: 10,
+                minRows: 3,
+                maxRows: 5,
               }}
-              onChange={handleChange}
+              onChange={handleCreateTextChange}
             />
             <div className="flex justify-end mt-3">
-              <Button type="primary" loading={saveLoading} onClick={saveNotes}>
+              <Button
+                type="primary"
+                loading={saveLoading && !currentId}
+                onClick={() =>
+                  saveNotes(createTextValue, Math.random().toString())
+                }
+              >
                 保存
               </Button>
             </div>
           </div>
         )}
 
-        <div className="flex-1 overflow-auto pb-12">
+        <div className="flex-1 overflow-auto pb-12 pt-6">
           {data?.map((item, index) => {
             const actions: any[] = [
               {
@@ -190,17 +216,16 @@ export default function Notes() {
                 key: "delete",
                 danger: true,
                 label: (
-                  <div>
-                    <DeleteOutlined
-                      key="delete"
-                      onClick={() =>
-                        Modal.confirm({
-                          title: "提示",
-                          content: "删除后无法恢复",
-                          onOk: () => handleDelete(item.name),
-                        })
-                      }
-                    />
+                  <div
+                    onClick={() => {
+                      Modal.confirm({
+                        title: "提示",
+                        content: "删除后无法恢复",
+                        onOk: () => handleDelete(item.name),
+                      });
+                    }}
+                  >
+                    <DeleteOutlined key="delete" />
                     <span className="ml-2">删除</span>
                   </div>
                 ),
@@ -209,19 +234,54 @@ export default function Notes() {
             return (
               <>
                 {index !== 0 ? <Divider /> : null}
-                <div key={item.name} className="mb-3 px-4 rounded-lg">
-                  <div className="flex item-center">
-                    <div className="flex-1 overflow-hidden text-gray-500 text-sm">
-                      {item.lastModified}
+                {currentId === item.name && !isMobile() ? (
+                  <div className="mb-6">
+                    <Input.TextArea
+                      value={textValue}
+                      placeholder="现在的想法是..."
+                      autoSize={{
+                        minRows: 6,
+                        maxRows: 10,
+                      }}
+                      onChange={handleChange}
+                    />
+                    <div className="flex justify-end mt-3">
+                      <Space>
+                        <Button
+                          onClick={() => {
+                            setTextValue("");
+                            setCurrentId("");
+                          }}
+                        >
+                          取消
+                        </Button>
+                        <Button
+                          type="primary"
+                          loading={saveLoading && !!currentId}
+                          onClick={() => {
+                            saveNotes(textValue, item.name);
+                          }}
+                        >
+                          保存
+                        </Button>
+                      </Space>
                     </div>
-                    <Dropdown placement="bottomRight" menu={{items: actions}}>
-                      <MoreOutlined className="cursor-pointer text-lg" />
-                    </Dropdown>
                   </div>
-                  <div className="break-all mt-3 text-[#333]">
-                    {item.content}
+                ) : (
+                  <div key={item.name} className="mb-3 px-4">
+                    <div className="flex item-center">
+                      <div className="flex-1 overflow-hidden text-gray-500 text-sm">
+                        {item.lastModified}
+                      </div>
+                      <Dropdown placement="bottomRight" menu={{items: actions}}>
+                        <MoreOutlined className="cursor-pointer text-lg" />
+                      </Dropdown>
+                    </div>
+                    <div className="break-all mt-3 text-[#333]">
+                      {item.content}
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             );
           })}
@@ -239,7 +299,7 @@ export default function Notes() {
           />
 
           <Drawer
-            title="新增小记"
+            title={currentId ? "编辑小记" : "新增小记"}
             placement="bottom"
             open={inputDrawerOpen}
             height={340}
@@ -253,7 +313,10 @@ export default function Notes() {
                 type="primary"
                 loading={saveLoading}
                 onClick={async () => {
-                  await saveNotes();
+                  await saveNotes(
+                    textValue,
+                    currentId || Math.random().toString()
+                  );
                   setInputDrawerOpen(false);
                 }}
               >
@@ -270,6 +333,12 @@ export default function Notes() {
           </Drawer>
         </>
       )}
+
+      <OSSInitModal
+        open={ossInitModalOpen}
+        onCancel={() => setOssInitModalOpen(false)}
+        onOk={handleOssInitModalConfirm}
+      />
     </GlobalContext.Provider>
   );
 }
