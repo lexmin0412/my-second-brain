@@ -4,7 +4,7 @@ import App from './App'
 import Home from './home';
 import Doc from "./docs";
 import Notes from "./notes";
-import './index.css'
+import './index.less'
 import {BrowserRouter} from "pure-react-router";
 
 export const routeList = [
