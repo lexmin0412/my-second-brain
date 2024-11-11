@@ -22,8 +22,8 @@ import dayjs from "dayjs";
 import {useEffect, useState} from "react";
 
 export default function Notes() {
-  const {ossClient, ossInitModalOpen, initOSSClient, setOssInitModalOpen} =
-    useOssClient();
+  const {ossClient} = useOssClient();
+  const [currentId, setCurrentId] = useState<string>();
 
   const {runAsync: batchGetNotes, data} = useRequest(
     (
@@ -55,7 +55,7 @@ export default function Notes() {
 
   console.log("dat111a", data);
 
-  const {runAsync: refreshSidebarItems, loading: sidebarLoading} = useRequest(
+  const {runAsync: refreshSidebarItems} = useRequest(
     () => {
       return ossClient?.listNotes().then((res) => {
         batchGetNotes(
@@ -74,6 +74,12 @@ export default function Notes() {
                 ),
               };
             })
+            .sort((a, b) => {
+              if (dayjs(a.lastModified).isBefore(b.lastModified)) {
+                return 1;
+              }
+              return -1;
+            })
         );
       }) as Promise<any[]>;
     },
@@ -86,7 +92,8 @@ export default function Notes() {
 
   const {runAsync: saveNotes, loading: saveLoading} = useRequest(
     () => {
-      return ossClient?.putNote(Math.random().toString(), textValue);
+      const filename = currentId || Math.random().toString();
+      return ossClient?.putNote(filename, textValue);
     },
     {
       manual: true,
@@ -127,6 +134,7 @@ export default function Notes() {
   useEffect(() => {
     if (!inputDrawerOpen) {
       setTextValue("");
+      setCurrentId("");
     }
   }, [inputDrawerOpen]);
 
@@ -160,13 +168,19 @@ export default function Notes() {
           </div>
         )}
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto pb-12">
           {data?.map((item, index) => {
             const actions: any[] = [
               {
                 key: "edit",
                 label: (
-                  <div>
+                  <div
+                    onClick={() => {
+                      setInputDrawerOpen(true);
+                      setTextValue(item.content);
+                      setCurrentId(item.name);
+                    }}
+                  >
                     <EditOutlined key="edit" />
                     <span className="ml-2">编辑</span>
                   </div>
@@ -229,6 +243,7 @@ export default function Notes() {
             placement="bottom"
             open={inputDrawerOpen}
             height={340}
+            style={{padding: 0}}
             onClose={() => {
               setInputDrawerOpen(false);
             }}
