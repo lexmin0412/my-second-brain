@@ -68,7 +68,6 @@ export default function Home() {
         </div>
 
         <Row className="mt-12 flex items-center">
-          {/* 🚀 */}
           {FeatureList.map((item) => {
             return (
               <Col key={item.title} span={isMobile() ? 24 : 12} className='mb-3'>
