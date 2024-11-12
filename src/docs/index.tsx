@@ -1,5 +1,5 @@
 import {useOssClient} from "@/hooks";
-import {Button, message, Empty, Drawer, Modal} from "antd";
+import {Button, message, Empty, Drawer, Modal, Menu} from "antd";
 import {useRequest} from "ahooks";
 import dayjs from "dayjs";
 import {GlobalContext} from "@/hooks/context";
@@ -322,14 +322,35 @@ export default function Home() {
           {!isOnMobile && layoutVisibleConfig.sidebar ? (
             <div className="w-52 border-0 border-r border-solid border-r-[#eff0f5] bg-slate-10 h-full overflow-auto resize-x">
 
-              <Sidebar
-                showActionButtons={true}
+              <Menu mode="inline" items={sidebarItems.map((item)=>{
+                return {
+                  ...item,
+                  key: item.name,
+                  label: item.title,
+                  children: item.children?.map((child)=>{
+                    return {
+                      ...child,
+                      key: child.name,
+                      label: child.title
+                    }
+                  })
+                }
+              })}
+                onSelect={(e)=>{
+                  handleSidebarChange(e.item.props.fullTitle, e.item.props)
+                }}
+              >
+
+              </Menu>
+
+              {/* <Sidebar
+                showActionButtons={false}
                 loading={sidebarLoading}
                 items={sidebarItems}
                 onChange={handleSidebarChange}
                 onRename={handleFileRename}
                 onDelete={handleFileDelete}
-              />
+              /> */}
             </div>
           ) : null}
 
