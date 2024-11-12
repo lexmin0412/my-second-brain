@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "rsbuild dev",
     "build": "rsbuild build",
-		"preview": "rsbuild preview",
+    "preview": "rsbuild preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "@bytemd/plugin-medium-zoom": "^1.21.0",
     "@bytemd/react": "^1.21.0",
     "@lexmin0412/wc-react": "^0.0.9",
+    "@mdxeditor/editor": "^3.17.4",
     "ahooks": "^3.7.8",
     "ali-oss": "^6.18.1",
     "antd": "^5.10.3",

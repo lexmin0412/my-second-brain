@@ -9,10 +9,18 @@
 	--color-theme: #4681ff;
 	--color-default: #222;
 }
+
 /* css variables end */
 
 /* css reset start */
-html, body, div, p, img, button, textarea, input {
+html,
+body,
+div,
+p,
+img,
+button,
+textarea,
+input {
 	margin: 0;
 	padding: 0;
 	outline: none;
@@ -20,7 +28,8 @@ html, body, div, p, img, button, textarea, input {
 	text-decoration: none;
 }
 
-html, body {
+html,
+body {
 	color: #222;
 }
 
@@ -29,6 +38,7 @@ a {
 	cursor: pointer;
 	color: var(--color-theme);
 }
+
 /* css reset end */
 
 /* css extends start */
@@ -37,10 +47,35 @@ a {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
 /* css extends end */
 
 .ant-drawer {
 	.ant-drawer-body {
 		padding: 12px;
 	}
+}
+
+// 浏览器滚动条宽度样式设置：
+/* 滚动条的宽度 */
+::-webkit-scrollbar {
+	width: 8px;
+	/* */
+}
+
+/* 滚动条的轨道颜色 */
+::-webkit-scrollbar-track {
+	border-radius: 4px;
+	background-color: #f0f0f0;
+}
+
+/* 滚动条的滑块样式 */
+::-webkit-scrollbar-thumb {
+	background-color: #ccc;
+	border-radius: 4px;
+}
+
+/* 滚动条在鼠标悬停时的滑块颜色 */
+::-webkit-scrollbar-thumb:hover {
+	background-color: #999;
 }

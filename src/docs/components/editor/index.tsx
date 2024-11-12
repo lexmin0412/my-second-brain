@@ -4,32 +4,33 @@ import {
   useImperativeHandle,
   useState,
 } from "react";
-import {message, Modal, Spin} from "antd";
+import { message, Modal, Spin } from "antd";
 import Markdown from "react-markdown";
 import reactGFM from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
-import {useHotkeys} from "react-hotkeys-hook";
+import { useHotkeys } from "react-hotkeys-hook";
 import PublishConfirmModal from "../publish-confirm-modal";
-import {GlobalContext} from "@/hooks/context";
-import {isMobile} from "@/utils";
-import {ShortCutAction, ShortCutMap} from "@/types";
-import {useStorageContent} from "@/hooks/use-storage-content";
+import { GlobalContext } from "@/hooks/context";
+import { isMobile } from "@/utils";
+import { ShortCutAction, ShortCutMap } from "@/types";
+import { useStorageContent } from "@/hooks/use-storage-content";
 import CompareModal from "../compare-modal";
-import {EditorRef} from "./types";
-import {pastImage} from "@/utils/clipboard";
-import {createRandomId} from "@/utils/id";
+import { EditorRef } from "./types";
+import { pastImage } from "@/utils/clipboard";
+import { createRandomId } from "@/utils/id";
 import gfm from "@bytemd/plugin-gfm";
 import codeHighlight from "@bytemd/plugin-highlight";
 import mediumZoom from "@bytemd/plugin-medium-zoom";
-import {Editor as ByteMDEditor} from "@bytemd/react";
+import { Editor as ByteMDEditor } from "@bytemd/react";
 import "bytemd/dist/index.css";
 import "./editor.less";
+import MdxEditor from "./mdxEditor";
 
 const plugins = [
   gfm(),
   codeHighlight(),
-	mediumZoom(),
+  mediumZoom(),
 ];
 
 interface EditorProps {
@@ -70,7 +71,7 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
 
   const [content, setContent] = useState("");
   const [publishConfirmModalOpen, setPublishConfirmModalOpen] = useState(false);
-  const {ossClient, selectedSidebarItem} = useContext(GlobalContext);
+  const { ossClient, selectedSidebarItem } = useContext(GlobalContext);
 
   // 监听 content ，更新本地缓存
   useStorageContent(`MSB-Content-${selectedSidebarItem?.fullTitle}`, content);
@@ -118,7 +119,7 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
     Object.keys(ShortCutMap),
     (e, handler) => {
       console.log("触发了", handler);
-      const {keys, ...restHandlers} = handler;
+      const { keys, ...restHandlers } = handler;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const funcKey = Object.keys(restHandlers)
@@ -138,19 +139,19 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
 
   const handleChange = (newText: string) => {
     setContent(newText);
-		if (newText !== initialContent) {
-			onContentUpdate(true);
+    if (newText !== initialContent) {
+      onContentUpdate(true);
     }
   };
 
   /**
    * 更新文档
    */
-  const handleDocUpdate = async (values: {fileName: string}) => {
+  const handleDocUpdate = async (values: { fileName: string }) => {
     await ossClient?.put(values.fileName, content);
     console.log("发布完成");
     message.success("发布成功");
-		onContentUpdate(false)
+    onContentUpdate(false)
     setPublishConfirmModalOpen(false);
     onPublishSuccess();
   };
@@ -190,15 +191,35 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
 
   return (
     <Spin spinning={loading} className="tsb-spin">
-      <div className="flex w-full h-full box-border relative">
+      <div className="flex w-full h-full box-border">
         {/* 编辑区域 */}
         {isOnMobile || editorVisible ? (
-          <div className="editor-wrapper w-full h-full">
-            <ByteMDEditor
+          <div className="editor-wrapper w-full h-full relative">
+            {/* <ByteMDEditor
               value={content}
               plugins={plugins}
               onChange={handleChange}
-            />
+            /> */}
+            <div className="relative max-w-[800px] mx-auto h-full">
+              <div className="px-4 pb-10 mt-4 box-border h-full overflow-auto">
+                <MdxEditor
+                  value={content}
+                  onChange={handleChange}
+                />
+
+                {/* 发布按钮 */}
+                {!isOnMobile ? (
+                  <div className="absolute top-12 right-6">
+                    <button
+                      className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"
+                      onClick={handlePublishBtnClick}
+                    >
+                      发布
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         ) : null}
 
@@ -215,18 +236,6 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
             </Markdown>
           ) : null
         }
-
-        {/* 发布按钮 */}
-        {!isOnMobile ? (
-          <div className="absolute top-10 right-4">
-            <button
-              className="bg-[#4c81ff] text-white h-9 leading-9 px-4 rounded-md cursor-pointer"
-              onClick={handlePublishBtnClick}
-            >
-              发布
-            </button>
-          </div>
-        ) : null}
 
         <PublishConfirmModal
           open={publishConfirmModalOpen}
