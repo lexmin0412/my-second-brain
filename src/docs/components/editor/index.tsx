@@ -19,19 +19,9 @@ import CompareModal from "../compare-modal";
 import { EditorRef } from "./types";
 import { pastImage } from "@/utils/clipboard";
 import { createRandomId } from "@/utils/id";
-import gfm from "@bytemd/plugin-gfm";
-import codeHighlight from "@bytemd/plugin-highlight";
-import mediumZoom from "@bytemd/plugin-medium-zoom";
-import { Editor as ByteMDEditor } from "@bytemd/react";
 import "bytemd/dist/index.css";
 import "./editor.less";
 import MdxEditor from "./mdxEditor";
-
-const plugins = [
-  gfm(),
-  codeHighlight(),
-  mediumZoom(),
-];
 
 interface EditorProps {
   /**
@@ -195,11 +185,6 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
         {/* 编辑区域 */}
         {isOnMobile || editorVisible ? (
           <div className="editor-wrapper w-full h-full relative">
-            {/* <ByteMDEditor
-              value={content}
-              plugins={plugins}
-              onChange={handleChange}
-            /> */}
             <div className="relative max-w-[800px] mx-auto h-full">
               <div className="px-4 pb-10 mt-4 box-border h-full overflow-auto">
                 <MdxEditor
