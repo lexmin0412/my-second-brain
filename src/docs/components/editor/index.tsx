@@ -5,10 +5,6 @@ import {
   useState,
 } from "react";
 import { message, Modal, Spin } from "antd";
-import Markdown from "react-markdown";
-import reactGFM from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
-import rehypeRaw from "rehype-raw";
 import { useHotkeys } from "react-hotkeys-hook";
 import PublishConfirmModal from "../publish-confirm-modal";
 import { GlobalContext } from "@/hooks/context";
@@ -19,7 +15,6 @@ import CompareModal from "../compare-modal";
 import { EditorRef } from "./types";
 import { pastImage } from "@/utils/clipboard";
 import { createRandomId } from "@/utils/id";
-import "bytemd/dist/index.css";
 import "./editor.less";
 import MdxEditor from "./mdxEditor";
 
@@ -55,7 +50,6 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
     initialContent,
     onPublishSuccess,
     editorVisible,
-    previewVisible,
     onContentUpdate,
   } = props;
 
@@ -164,11 +158,6 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
     }
   };
 
-  // 语法插件
-  const remarkPlugins = [reactGFM];
-  // 高亮插件
-  const rehypePlugins = [rehypeRaw, rehypeHighlight];
-
   useImperativeHandle(ref, () => {
     return {
       publish: () => {
@@ -187,6 +176,7 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
           <div className="editor-wrapper w-full h-full relative">
             <div className="relative max-w-[800px] mx-auto h-full">
               <div className="px-4 pb-10 mt-4 box-border h-full overflow-auto">
+                {/* 编辑器 */}
                 <MdxEditor
                   value={content}
                   onChange={handleChange}
@@ -207,20 +197,6 @@ export const Editor: React.ForwardRefRenderFunction<EditorRef, EditorProps> = (
             </div>
           </div>
         ) : null}
-
-        {/* 预览区域 暂时先使用 ByteMD 自带的预览 */}
-        {
-          // eslint-disable-next-line no-constant-condition
-          previewVisible && false ? (
-            <Markdown
-              className="flex-1 p-4 overflow-auto markdown-body"
-              remarkPlugins={remarkPlugins}
-              rehypePlugins={rehypePlugins}
-            >
-              {content}
-            </Markdown>
-          ) : null
-        }
 
         <PublishConfirmModal
           open={publishConfirmModalOpen}
