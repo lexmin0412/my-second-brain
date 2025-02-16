@@ -1,7 +1,7 @@
 import "./App.css";
 import {useHistory, Route} from "pure-react-router";
 import {useEffect} from "react";
-import {routeList} from "./main";
+import {routeList} from "./routes";
 import LayoutHeader from "./components/layout/header";
 
 function App() {

@@ -4,13 +4,9 @@ import { pluginLess } from '@rsbuild/plugin-less'
 import tailwindcss from 'tailwindcss'
 
 export default defineConfig({
-	source: {
-		entry: {
-			index: "./src/main.tsx"
-		},
-	},
 	server: {
-		port: 5173
+		port: 5173,
+		base: '/my-second-brain'
 	},
 	html: {
 		template: "./index.html",
