@@ -38,8 +38,6 @@ export default function Notes() {
       }[]
     ) => {
       const promises: Array<() => Promise<any>> = [];
-      console.log("names123", list);
-      // return Promise.resolve()
       list.forEach((item) => {
         promises.push(() => {
           return ossClient?.getNote(item.name).then((res) => {
@@ -58,8 +56,6 @@ export default function Notes() {
     }
   );
 
-  console.log("dat111a", data);
-
   const {runAsync: refreshSidebarItems} = useRequest(
     () => {
       return ossClient?.listNotes().then((res) => {
@@ -68,10 +64,6 @@ export default function Notes() {
             .filter((item) => item.name.endsWith(".md"))
             .map((item) => {
               const splitRes = item.name.split("/");
-              console.log(
-                "result111",
-                splitRes[splitRes.length - 1].split(".md")[0]
-              );
               return {
                 name: splitRes[splitRes.length - 1].split(".md")[0],
                 lastModified: dayjs(item.lastModified).format(
