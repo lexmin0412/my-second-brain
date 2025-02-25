@@ -1,3 +1,4 @@
+import MdxEditor from "@/docs/components/editor/mdxEditor";
 import OSSInitModal from "@/docs/components/oss-init-modal";
 import {useOssClient} from "@/hooks";
 import {GlobalContext} from "@/hooks/context";
@@ -115,12 +116,12 @@ export default function Notes() {
   }, [ossClient]);
 
   const [textValue, setTextValue] = useState("");
-  const handleChange = (e: any) => {
-    setTextValue(e.target.value);
+  const handleChange = (value: string) => {
+    setTextValue(value);
   };
 
-  const handleCreateTextChange = (e: any) => {
-    setCreateTextValue(e.target.value);
+  const handleCreateTextChange = (value: string) => {
+    setCreateTextValue(value);
   };
 
   const {runAsync: handleDelete} = useRequest(
@@ -163,42 +164,44 @@ export default function Notes() {
       >
         {/* 桌面端左侧编辑区域 */}
         {!isMobile() && (
-          <div className="md:w-1/2 px-6 bg-white shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-800">
-              {currentId ? "编辑笔记" : "新建笔记"}
-            </h2>
-            <Input.TextArea
-              value={currentId ? textValue : createTextValue}
-              placeholder="现在的想法是..."
-              autoSize={{minRows: 10, maxRows: 30}}
-              onChange={currentId ? handleChange : handleCreateTextChange}
-              className="!border-gray-200 focus:!border-blue-500 hover:!border-blue-300 p-3"
-            />
-            <div className="flex justify-end gap-4 mt-6">
-              {currentId && (
+          <div className="md:w-1/2 px-6 pb-6 bg-white shadow-sm flex flex-col  overflow-hidden">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {currentId ? "编辑笔记" : "新建笔记"}
+              </h2>
+              <div className="flex justify-end gap-4">
+                {currentId && (
+                  <Button
+                    onClick={() => {
+                      setTextValue("");
+                      setCurrentId("");
+                    }}
+                    className="px-3 h-8"
+                  >
+                    取消
+                  </Button>
+                )}
                 <Button
+                  type="primary"
+                  loading={saveLoading}
+                  disabled={!(currentId ? textValue : createTextValue)}
                   onClick={() => {
-                    setTextValue("");
-                    setCurrentId("");
+                    currentId
+                      ? saveNotes(textValue, currentId)
+                      : saveNotes(createTextValue, Math.random().toString());
                   }}
-                  className="px-6 h-10"
+                  className="bg-blue-600 hover:!bg-blue-700 px-3 h-8"
                 >
-                  取消
+                  {currentId ? "保存修改" : "小记一下"}
                 </Button>
-              )}
-              <Button
-                type="primary"
-                loading={saveLoading}
-                disabled={!(currentId ? textValue : createTextValue)}
-                onClick={() => {
-                  currentId
-                    ? saveNotes(textValue, currentId)
-                    : saveNotes(createTextValue, Math.random().toString());
-                }}
-                className="bg-blue-600 hover:!bg-blue-700 px-6 h-10"
-              >
-                {currentId ? "保存修改" : "发布新笔记"}
-              </Button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto border border-solid border-gray-300 rounded-lg">
+              <MdxEditor
+                value={currentId ? textValue : createTextValue}
+                onChange={currentId ? handleChange : handleCreateTextChange}
+                className="min-h-96"
+              />
             </div>
           </div>
         )}
@@ -262,11 +265,11 @@ export default function Notes() {
                 >
                   {index !== 0 && <Divider className="!my-6" />}
                   <div
-                    className={`group p-4 bg-gray-50 ${
+                    className={`group bg-gray-50 ${
                       !isMobile() && "rounded-lg transition-colors"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-3 pb-0">
                       <span className="text-sm text-gray-500">
                         {item.lastModified}
                       </span>
@@ -274,8 +277,8 @@ export default function Notes() {
                         <MoreOutlined className="cursor-pointer text-lg text-gray-400 hover:text-blue-600" />
                       </Dropdown>
                     </div>
-                    <div className="mt-2 text-gray-800 break-words">
-                      {item.content}
+                    <div className="text-gray-800 break-words">
+                      <MdxEditor readonly value={item.content} />
                     </div>
                   </div>
                 </div>
@@ -283,7 +286,9 @@ export default function Notes() {
             })}
 
             {data?.length && (
-              <div className="text-center h-10 leading-10 text-gray-300">— — 我是有底线的 — —</div>
+              <div className="text-center h-10 leading-10 text-gray-300">
+                — — 我是有底线的 — —
+              </div>
             )}
           </div>
         </div>
