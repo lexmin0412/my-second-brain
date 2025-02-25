@@ -6,12 +6,13 @@ import LayoutHeader from "./components/layout/header";
 
 function App() {
   const history = useHistory();
+  const pathname = history.location.pathname;
 
   useEffect(() => {
-    if (!window.location.pathname || window.location.pathname === "/") {
+    if (!pathname || pathname === "/") {
       history.push(routeList[0].path);
     }
-  }, []);
+  }, [pathname]);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
