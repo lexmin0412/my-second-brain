@@ -158,125 +158,134 @@ export default function Notes() {
     >
       <div
         className={`${
-          isMobile() ? "w-full px-3" : "w-1/2 mx-auto pt-6"
-        } box-border overflow-hidden flex flex-col h-full`}
+          isMobile() ? "w-full px-3" : "w-1/2 mx-auto"
+        } box-border overflow-hidden flex w-full h-full`}
       >
+        {/* 桌面端左侧编辑区域 */}
         {!isMobile() && (
-          <div className="mb-6">
+          <div className="md:w-1/2 px-6 bg-white shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-800">
+              {currentId ? "编辑笔记" : "新建笔记"}
+            </h2>
             <Input.TextArea
-              value={createTextValue}
+              value={currentId ? textValue : createTextValue}
               placeholder="现在的想法是..."
-              autoSize={{
-                minRows: 3,
-                maxRows: 5,
-              }}
-              onChange={handleCreateTextChange}
+              autoSize={{minRows: 10, maxRows: 30}}
+              onChange={currentId ? handleChange : handleCreateTextChange}
+              className="!border-gray-200 focus:!border-blue-500 hover:!border-blue-300 p-3"
             />
-            <div className="flex justify-end mt-3">
+            <div className="flex justify-end gap-4 mt-6">
+              {currentId && (
+                <Button
+                  onClick={() => {
+                    setTextValue("");
+                    setCurrentId("");
+                  }}
+                  className="px-6 h-10"
+                >
+                  取消
+                </Button>
+              )}
               <Button
                 type="primary"
-                loading={saveLoading && !currentId}
-                onClick={() =>
-                  saveNotes(createTextValue, Math.random().toString())
-                }
+                loading={saveLoading}
+                disabled={!(currentId ? textValue : createTextValue)}
+                onClick={() => {
+                  currentId
+                    ? saveNotes(textValue, currentId)
+                    : saveNotes(createTextValue, Math.random().toString());
+                }}
+                className="bg-blue-600 hover:!bg-blue-700 px-6 h-10"
               >
-                保存
+                {currentId ? "保存修改" : "发布新笔记"}
               </Button>
             </div>
           </div>
         )}
 
-        <div className="flex-1 overflow-auto pb-12 pt-6">
-          {data?.map((item, index) => {
-            const actions: any[] = [
-              {
-                key: "edit",
-                label: (
-                  <div
-                    onClick={() => {
-                      setInputDrawerOpen(true);
-                      setTextValue(item.content);
-                      setCurrentId(item.name);
-                    }}
-                  >
-                    <EditOutlined key="edit" />
-                    <span className="ml-2">编辑</span>
-                  </div>
-                ),
-              },
-              {
-                key: "delete",
-                danger: true,
-                label: (
-                  <div
-                    onClick={() => {
-                      Modal.confirm({
-                        title: "提示",
-                        content: "删除后无法恢复",
-                        onOk: () => handleDelete(item.name),
-                      });
-                    }}
-                  >
-                    <DeleteOutlined key="delete" />
-                    <span className="ml-2">删除</span>
-                  </div>
-                ),
-              },
-            ];
-            return (
-              <>
-                {index !== 0 ? <Divider /> : null}
-                {currentId === item.name && !isMobile() ? (
-                  <div className="mb-6">
-                    <Input.TextArea
-                      value={textValue}
-                      placeholder="现在的想法是..."
-                      autoSize={{
-                        minRows: 6,
-                        maxRows: 10,
+        {/* 右侧列表区域 */}
+        <div
+          className={`${
+            isMobile() ? "pt-6" : "md:w-1/2"
+          } flex-1 overflow-hidden flex flex-col`}
+        >
+          {!isMobile() && (
+            <h3 className="px-6 py-0 text-xl font-semibold text-gray-800 border-b">
+              历史记录 ({data?.length || 0})
+            </h3>
+          )}
+          <div
+            className={`${
+              isMobile() ? "px-3" : "px-6"
+            } overflow-auto flex-1 pb-3`}
+          >
+            {data?.map((item, index) => {
+              const actions: any[] = [
+                {
+                  key: "edit",
+                  label: (
+                    <div
+                      onClick={() => {
+                        setInputDrawerOpen(true);
+                        setTextValue(item.content);
+                        setCurrentId(item.name);
                       }}
-                      onChange={handleChange}
-                    />
-                    <div className="flex justify-end mt-3">
-                      <Space>
-                        <Button
-                          onClick={() => {
-                            setTextValue("");
-                            setCurrentId("");
-                          }}
-                        >
-                          取消
-                        </Button>
-                        <Button
-                          type="primary"
-                          loading={saveLoading && !!currentId}
-                          onClick={() => {
-                            saveNotes(textValue, item.name);
-                          }}
-                        >
-                          保存
-                        </Button>
-                      </Space>
+                    >
+                      <EditOutlined key="edit" />
+                      <span className="ml-2">编辑</span>
                     </div>
-                  </div>
-                ) : (
-                  <div key={item.name} className="mb-3 px-4">
-                    <div className="flex item-center">
-                      <div className="flex-1 overflow-hidden text-gray-500 text-sm">
+                  ),
+                },
+                {
+                  key: "delete",
+                  danger: true,
+                  label: (
+                    <div
+                      onClick={() => {
+                        Modal.confirm({
+                          title: "提示",
+                          content: "删除后无法恢复",
+                          onOk: () => handleDelete(item.name),
+                        });
+                      }}
+                    >
+                      <DeleteOutlined key="delete" />
+                      <span className="ml-2">删除</span>
+                    </div>
+                  ),
+                },
+              ];
+              return (
+                <div
+                  key={item.name}
+                  className={`${isMobile() ? "mb-3" : "mb-4"}`}
+                >
+                  {index !== 0 && <Divider className="!my-6" />}
+                  <div
+                    className={`group p-4 bg-gray-50 ${
+                      !isMobile() && "rounded-lg transition-colors"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">
                         {item.lastModified}
-                      </div>
-                      <Dropdown placement="bottomRight" menu={{items: actions}}>
-                        <MoreOutlined className="cursor-pointer text-lg" />
+                      </span>
+                      <Dropdown menu={{items: actions}}>
+                        <MoreOutlined className="cursor-pointer text-lg text-gray-400 hover:text-blue-600" />
                       </Dropdown>
                     </div>
-                    <div className="break-all mt-3 text-[#333]">
+                    <div className="mt-2 text-gray-800 break-words">
                       {item.content}
                     </div>
                   </div>
-                )}
-              </>
-            );
-          })}
+                </div>
+              );
+            })}
+
+            {data?.length && (
+              <div className="text-center h-10 leading-10 text-gray-300">— — 我是有底线的 — —</div>
+            )}
+          </div>
         </div>
       </div>
 
