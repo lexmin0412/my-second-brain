@@ -3,7 +3,7 @@ import { createRandomId } from '@/utils/id'
 import { BoldItalicUnderlineToggles, diffSourcePlugin, DiffSourceToggleWrapper, MDXEditor, MDXEditorMethods, UndoRedo, headingsPlugin, listsPlugin, quotePlugin, thematicBreakPlugin, toolbarPlugin, markdownShortcutPlugin, codeBlockPlugin, codeMirrorPlugin, ConditionalContents, InsertSandpack, InsertCodeBlock, SandpackConfig, sandpackPlugin, ChangeCodeMirrorLanguage, ShowSandpackInfo, tablePlugin, InsertTable, InsertImage, imagePlugin, linkPlugin, CreateLink, linkDialogPlugin } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
 import { message } from 'antd'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 interface IMXEditorProps {
 	className?: string
@@ -43,12 +43,19 @@ export default function MdxEditor(props: IMXEditorProps) {
 
   const { readonly, value, onChange, className } = props
   const { ossClient } = useOssClient()
+  const timerRef = useRef(null);
 
   const ref = useRef<MDXEditorMethods>(null)
 
-  const handleChange = (markdown: string) => {
-    onChange?.(markdown)
+const handleChange = useCallback((markdown: string) => {
+  if (timerRef.current) {
+    clearTimeout(timerRef.current);
   }
+  timerRef.current = setTimeout(() => {
+    onChange?.(markdown);
+    timerRef.current = null;
+  }, 300);
+}, [onChange]);
 
   useEffect(() => {
     if (value !== ref.current?.getMarkdown()) {
